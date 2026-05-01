@@ -48,11 +48,8 @@ export default function AboutPage() {
             , normalises each to a 0–100 sub-score using calibrated calm/alarm
             anchors, and combines them into a weighted composite. The result
             is committed as a static JSON file; the page reads it at build
-            time. Full formulas live on the{" "}
-            <Link href="/methodology" className="underline-offset-2 hover:underline">
-              methodology page
-            </Link>
-            .
+            time. The full methodology and per-region formulas are available
+            on request to the eToro app store team.
           </p>
         </Section>
 
@@ -69,8 +66,8 @@ export default function AboutPage() {
           <p>
             All raw series are pulled from FRED (Federal Reserve Bank of St.
             Louis), which mirrors data from the ECB, Eurostat, OECD, ONS, BoE
-            and the BLS. The methodology page lists every series id used per
-            region.
+            and the BLS. The methodology document (available on request) lists
+            every series id used per region.
           </p>
         </Section>
 

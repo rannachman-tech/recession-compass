@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
-import { ConnectEtoroCta } from "./ConnectEtoroCta";
+import { EtoroConnectedBadge } from "./EtoroConnectedBadge";
 import { loadPrefs, savePrefs } from "@/lib/storage";
 import type { ThemeMode } from "@/lib/types";
 
@@ -45,7 +45,7 @@ export function Header() {
             >
               About
             </Link>
-            <ConnectEtoroCta variant="header" />
+            <EtoroConnectedBadge />
             <ThemeToggle value={theme} onChange={onToggle} />
           </div>
         </div>
