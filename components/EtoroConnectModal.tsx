@@ -27,7 +27,6 @@ export function EtoroConnectModal({ open, onClose }: Props) {
   const [session, setSession] = useState<EtoroSession | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [userKey, setUserKey] = useState("");
-  const [usernameOverride, setUsernameOverride] = useState("");
   const [env, setEnv] = useState<EtoroEnv>("demo");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string>("");
@@ -68,11 +67,7 @@ export function EtoroConnectModal({ open, onClose }: Props) {
       const res = await fetch("/api/etoro/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          apiKey,
-          userKey,
-          usernameOverride: usernameOverride.trim() || undefined,
-        }),
+        body: JSON.stringify({ apiKey, userKey }),
       });
       const json = await res.json();
       if (!json.ok) {
@@ -149,13 +144,11 @@ export function EtoroConnectModal({ open, onClose }: Props) {
             <ConnectForm
               apiKey={apiKey}
               userKey={userKey}
-              usernameOverride={usernameOverride}
               env={env}
               status={status}
               error={error}
               onApiKeyChange={setApiKey}
               onUserKeyChange={setUserKey}
-              onUsernameOverrideChange={setUsernameOverride}
               onEnvChange={setEnv}
               onSubmit={submit}
             />
@@ -249,25 +242,21 @@ function ConnectedCard({
 function ConnectForm({
   apiKey,
   userKey,
-  usernameOverride,
   env,
   status,
   error,
   onApiKeyChange,
   onUserKeyChange,
-  onUsernameOverrideChange,
   onEnvChange,
   onSubmit,
 }: {
   apiKey: string;
   userKey: string;
-  usernameOverride: string;
   env: EtoroEnv;
   status: Status;
   error: string;
   onApiKeyChange: (v: string) => void;
   onUserKeyChange: (v: string) => void;
-  onUsernameOverrideChange: (v: string) => void;
   onEnvChange: (v: EtoroEnv) => void;
   onSubmit: (e: React.FormEvent) => void;
 }) {
@@ -300,22 +289,6 @@ function ConnectForm({
           placeholder="paste your Private Key"
           className="focus-ring block w-full rounded-md border border-border bg-bg px-3 py-2 text-[13px] font-mono text-fg placeholder:text-fg-subtle"
         />
-      </Field>
-
-      <Field label="eToro username (optional)">
-        <input
-          type="text"
-          autoComplete="off"
-          spellCheck={false}
-          value={usernameOverride}
-          onChange={(e) => onUsernameOverrideChange(e.target.value)}
-          placeholder="leave blank to auto-detect"
-          className="focus-ring block w-full rounded-md border border-border bg-bg px-3 py-2 text-[13px] font-mono text-fg placeholder:text-fg-subtle"
-        />
-        <p className="mt-1 text-[11px] text-fg-subtle">
-          eToro&apos;s API doesn&apos;t always return your handle. Type it
-          here to override (without the @).
-        </p>
       </Field>
 
       <fieldset>
