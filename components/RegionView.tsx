@@ -41,6 +41,8 @@ export function RegionView({ data }: { data: RegionData }) {
         </div>
       </section>
 
+      <InsightsCard insights={data.insights} />
+
       <GaugePanel indicators={data.indicators} />
 
       <DeepChart
@@ -49,8 +51,6 @@ export function RegionView({ data }: { data: RegionData }) {
         bandsLabel={cfg.bandsLabel}
         currentScore={data.score}
       />
-
-      <InsightsCard insights={data.insights} />
 
       <div className="mt-10">
         <ConnectEtoroCta
