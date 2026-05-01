@@ -4,6 +4,7 @@ import { DeepChart } from "./DeepChart";
 import { RegionTabs } from "./RegionTabs";
 import { LiveSourcesRow } from "./LiveSourcesRow";
 import { ConnectEtoroCta } from "./ConnectEtoroCta";
+import { PositionLadder } from "./PositionLadder";
 import type { RegionData } from "@/lib/types";
 import { regionConfig } from "@/lib/regions";
 
@@ -33,6 +34,9 @@ export function RegionView({ data }: { data: RegionData }) {
               calibrating={calibrating}
             />
           </div>
+          {!calibrating && (
+            <PositionLadder score={data.score} band={data.band} />
+          )}
         </div>
       </section>
 
