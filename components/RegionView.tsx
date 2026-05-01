@@ -13,13 +13,11 @@ export function RegionView({ data }: { data: RegionData }) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-      {/* Region tabs sit just below the header */}
       <div className="mt-5 flex items-center justify-between gap-3">
         <RegionTabs />
         <LiveSourcesRow generatedAt={data.generatedAt} />
       </div>
 
-      {/* Hero — barometer */}
       <section
         aria-label={`${data.regionLabel} recession probability`}
         className="mt-6 sm:mt-10"
@@ -38,22 +36,23 @@ export function RegionView({ data }: { data: RegionData }) {
         </div>
       </section>
 
-      {/* Service panel */}
       <GaugePanel indicators={data.indicators} />
 
-      {/* Deep chart */}
       <DeepChart
         history={data.history}
         recessions={data.recessions}
         bandsLabel={cfg.bandsLabel}
+        currentScore={data.score}
       />
 
-      {/* Contextual CTA */}
       <div className="mt-10">
-        <ConnectEtoroCta variant="contextual" region={data.regionLabel} />
+        <ConnectEtoroCta
+          variant="contextual"
+          region={data.regionLabel}
+          score={data.score}
+        />
       </div>
 
-      {/* Notes / partial data */}
       {data.notes.length > 0 && (
         <section className="mt-8">
           <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
