@@ -3,7 +3,7 @@
   "regionLabel": "Eurozone",
   "score": 15,
   "band": 19,
-  "generatedAt": "2026-05-01T19:00:00Z",
+  "generatedAt": "2026-05-01T20:00:00Z",
   "indicators": [
     {
       "id": "yield_curve",
@@ -23,7 +23,7 @@
       "label": "Unemployment (YoY change, DE/FR/IT/ES avg)",
       "value": -0.2999999999999998,
       "unit": "pp",
-      "source": "FRED (OECD-mirrored): LRHUTTTTDEM156S + FRM156S + ITM156S + ESM156S",
+      "source": "FRED (OECD-mirrored)",
       "asOf": "2026-01-01",
       "subScore": 13,
       "threshold": 0.5,
@@ -36,7 +36,7 @@
       "label": "OECD leading indicator (DE/FR/IT avg)",
       "value": 101.089426362813,
       "unit": "",
-      "source": "FRED (OECD-mirrored): DEULOLITOAASTSAM + FRALOLITOAASTSAM + ITALOLITOAASTSAM",
+      "source": "FRED (OECD-mirrored)",
       "asOf": "2026-03-01",
       "subScore": 0,
       "threshold": 100,
@@ -2535,5 +2535,24 @@
       "label": "COVID"
     }
   ],
-  "notes": []
+  "notes": [],
+  "insights": {
+    "paragraph": "Eurozone is sitting in clear-skies territory at 15/100 \u2014 the composite reads benign. Real GDP (YoY) is the loudest signal here at sub-score 43. Direct measure of contraction, but lagging. OECD leading indicator (DE/FR/IT avg) is reassuringly calm at sub-score 0, holding the composite down. Capital at risk; not financial advice.",
+    "points": [
+      {
+        "kind": "concern",
+        "label": "Real GDP (YoY)",
+        "value": "0.78%",
+        "why": "Real GDP (YoY) is the loudest signal here at sub-score 43. Direct measure of contraction, but lagging."
+      },
+      {
+        "kind": "reassurance",
+        "label": "OECD leading indicator (DE/FR/IT avg)",
+        "value": "101.09",
+        "why": "OECD leading indicator (DE/FR/IT avg) is reassuringly calm at sub-score 0, holding the composite down."
+      }
+    ],
+    "generatedAt": "2026-05-01T20:00:00Z",
+    "source": "fallback"
+  }
 }

@@ -3,7 +3,7 @@
   "regionLabel": "Global composite",
   "score": 24,
   "band": 16,
-  "generatedAt": "2026-05-01T19:00:00Z",
+  "generatedAt": "2026-05-01T20:00:00Z",
   "indicators": [
     {
       "id": "us_score",
@@ -2511,5 +2511,24 @@
       "label": "COVID"
     }
   ],
-  "notes": []
+  "notes": [],
+  "insights": {
+    "paragraph": "Global composite is sitting in clear-skies territory at 24/100 \u2014 the composite reads benign. China OECD leading indicator is the loudest signal here at sub-score 42. Below 100 = below trend on the OECD Composite Leading Indicator. Japan OECD leading indicator is reassuringly calm at sub-score 12, holding the composite down. Capital at risk; not financial advice.",
+    "points": [
+      {
+        "kind": "concern",
+        "label": "China OECD leading indicator",
+        "value": "98.49",
+        "why": "China OECD leading indicator is the loudest signal here at sub-score 42. Below 100 = below trend on the OECD Composite Leading Indicator."
+      },
+      {
+        "kind": "reassurance",
+        "label": "Japan OECD leading indicator",
+        "value": "100.25",
+        "why": "Japan OECD leading indicator is reassuringly calm at sub-score 12, holding the composite down."
+      }
+    ],
+    "generatedAt": "2026-05-01T20:00:00Z",
+    "source": "fallback"
+  }
 }

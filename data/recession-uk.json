@@ -3,14 +3,14 @@
   "regionLabel": "United Kingdom",
   "score": 32,
   "band": 35,
-  "generatedAt": "2026-05-01T19:00:00Z",
+  "generatedAt": "2026-05-01T20:00:00Z",
   "indicators": [
     {
       "id": "yield_curve",
       "label": "UK gilt curve (10y\u20132y)",
       "value": 0.9907000000000004,
       "unit": "pp",
-      "source": "FRED (BoE-mirrored): IRLTLT01GBM156N \u2212 IR3TIB01GBM156N",
+      "source": "FRED (BoE-mirrored)",
       "asOf": "2026-01-01",
       "subScore": 0,
       "threshold": 0,
@@ -2534,5 +2534,24 @@
       "label": "COVID"
     }
   ],
-  "notes": []
+  "notes": [],
+  "insights": {
+    "paragraph": "United Kingdom is on storm watch at 32/100 \u2014 some indicators are flashing yellow. Unemployment (YoY change) is the loudest signal here at sub-score 87. Sustained YoY rises above ~+0.5pp are rare outside of recessions. UK gilt curve (10y\u20132y) is reassuringly calm at sub-score 0, holding the composite down. Capital at risk; not financial advice.",
+    "points": [
+      {
+        "kind": "concern",
+        "label": "Unemployment (YoY change)",
+        "value": "+0.80pp",
+        "why": "Unemployment (YoY change) is the loudest signal here at sub-score 87. Sustained YoY rises above ~+0.5pp are rare outside of recessions."
+      },
+      {
+        "kind": "reassurance",
+        "label": "UK gilt curve (10y\u20132y)",
+        "value": "+0.99pp",
+        "why": "UK gilt curve (10y\u20132y) is reassuringly calm at sub-score 0, holding the composite down."
+      }
+    ],
+    "generatedAt": "2026-05-01T20:00:00Z",
+    "source": "fallback"
+  }
 }

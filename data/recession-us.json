@@ -3,7 +3,7 @@
   "regionLabel": "United States",
   "score": 27,
   "band": 32,
-  "generatedAt": "2026-05-01T19:00:00Z",
+  "generatedAt": "2026-05-01T20:00:00Z",
   "indicators": [
     {
       "id": "yield_curve",
@@ -28,7 +28,7 @@
       "subScore": 40,
       "threshold": 0.5,
       "weight": 25,
-      "explanation": "Triggers when the 3-month average unemployment rate is 0.5pp above its 12-month low \u2014 that's the textbook fire point.",
+      "explanation": "Triggers when the 3-month average unemployment rate is 0.5pp above its 12-month low. Fires near the start of every US recession since 1970.",
       "formula": "score = lerp(value, calm=0.0pp \u2192 0, alarm=0.5pp \u2192 100)"
     },
     {
@@ -41,7 +41,7 @@
       "subScore": 5,
       "threshold": 10,
       "weight": 10,
-      "explanation": "Weekly initial jobless claims, smoothed to 4-week average vs same week last year.",
+      "explanation": "Weekly initial jobless claims, smoothed to 4-week average and compared to the same week last year.",
       "formula": "value = (4wMA(claims) / 4wMA(claims, 52w ago) - 1) \u00d7 100"
     },
     {
@@ -54,7 +54,7 @@
       "subScore": 17,
       "threshold": 0,
       "weight": 10,
-      "explanation": "Industrial production YoY as a free, non-licensed proxy for the ISM Manufacturing PMI. GFC trough was -15%.",
+      "explanation": "Industrial production YoY as a free, non-licensed proxy for the ISM Manufacturing PMI.",
       "formula": "value = (INDPRO_t / INDPRO_{t-12} - 1) \u00d7 100"
     },
     {
@@ -67,7 +67,7 @@
       "subScore": 2,
       "threshold": 100,
       "weight": 10,
-      "explanation": "OECD Composite Leading Indicator (amplitude-adjusted) for the US. Below 100 is below trend; GFC trough was around 92.",
+      "explanation": "OECD Composite Leading Indicator (amplitude-adjusted) for the US.",
       "formula": "score = lerp(value, calm=101 \u2192 0, alarm=95 \u2192 100)"
     },
     {
@@ -2565,5 +2565,24 @@
       "label": "COVID"
     }
   ],
-  "notes": []
+  "notes": [],
+  "insights": {
+    "paragraph": "United States is sitting in clear-skies territory at 27/100 \u2014 the composite reads benign. Consumer sentiment is the loudest signal here at sub-score 100. Sub-70 readings have historically clustered around recessions. OECD leading indicator is reassuringly calm at sub-score 2, holding the composite down. Capital at risk; not financial advice.",
+    "points": [
+      {
+        "kind": "concern",
+        "label": "Consumer sentiment",
+        "value": "53.30",
+        "why": "Consumer sentiment is the loudest signal here at sub-score 100. Sub-70 readings have historically clustered around recessions."
+      },
+      {
+        "kind": "reassurance",
+        "label": "OECD leading indicator",
+        "value": "100.89",
+        "why": "OECD leading indicator is reassuringly calm at sub-score 2, holding the composite down."
+      }
+    ],
+    "generatedAt": "2026-05-01T20:00:00Z",
+    "source": "fallback"
+  }
 }
