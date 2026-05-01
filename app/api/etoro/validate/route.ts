@@ -4,13 +4,11 @@ import { NextResponse } from "next/server";
  * POST /api/etoro/validate
  * Body: { apiKey: string, userKey: string }
  *
- * Validates the keys by calling eToro's /me endpoint, then resolves the
- * username/avatar via /user-info/people?cidList=<realCid>. Returns the
- * resolved profile or a clear error.
+ * Validates the keys against eToro's /me, then resolves the user profile
+ * via /user-info/people. Returns the resolved profile or a clear error.
  *
- * NOTE: this endpoint does NOT log or store the user's keys. They pass
- * through this Vercel function briefly during validation, then live only in
- * the user's browser localStorage afterwards.
+ * Per the etoro-apps skill: use realCid (not gcid) for cidList lookup.
+ * The endpoint never logs or stores the user's keys.
  */
 
 export const runtime = "edge";
@@ -19,7 +17,6 @@ export const dynamic = "force-dynamic";
 const BASE = "https://public-api.etoro.com/api/v1";
 
 function uuid(): string {
-  // RFC4122 v4
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     const v = c === "x" ? r : (r & 0x3) | 0x8;
@@ -33,13 +30,45 @@ interface MeResponse {
   demoCid?: number;
 }
 
-interface PeopleResponse {
-  data?: Array<{
-    userName?: string;
-    firstName?: string;
-    lastName?: string;
-    avatars?: Array<{ url?: string }>;
-  }>;
+// The /user-info/people response shape varies. Be permissive about reading it.
+type AnyJson = Record<string, unknown>;
+
+function pick(obj: unknown, keys: string[]): string | undefined {
+  if (!obj || typeof obj !== "object") return undefined;
+  const o = obj as AnyJson;
+  for (const k of keys) {
+    const v = o[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return undefined;
+}
+
+function pickUserFromPeople(json: unknown): {
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string;
+} {
+  // Possible top-level shapes: { data: [user] } | [user] | user
+  let candidate: unknown = json;
+  if (json && typeof json === "object" && Array.isArray((json as AnyJson).data)) {
+    candidate = ((json as AnyJson).data as unknown[])[0];
+  } else if (Array.isArray(json)) {
+    candidate = json[0];
+  }
+  if (!candidate || typeof candidate !== "object") return {};
+  const c = candidate as AnyJson;
+  const username = pick(c, ["userName", "username", "user_name", "name", "displayName"]);
+  const firstName = pick(c, ["firstName", "first_name", "givenName"]);
+  const lastName = pick(c, ["lastName", "last_name", "familyName", "surname"]);
+  let avatarUrl: string | undefined;
+  const avs = c.avatars;
+  if (Array.isArray(avs) && avs.length > 0) {
+    avatarUrl = pick(avs[0], ["url", "src", "href"]);
+  } else if (typeof c.avatarUrl === "string") {
+    avatarUrl = c.avatarUrl as string;
+  }
+  return { username, firstName, lastName, avatarUrl };
 }
 
 export async function POST(req: Request) {
@@ -54,7 +83,7 @@ export async function POST(req: Request) {
   const userKey = (body.userKey ?? "").trim();
   if (!apiKey || !userKey) {
     return NextResponse.json(
-      { ok: false, error: "Both Public API Key and User Key are required." },
+      { ok: false, error: "Both Public API Key and Private Key are required." },
       { status: 400 }
     );
   }
@@ -77,10 +106,10 @@ export async function POST(req: Request) {
           ok: false,
           error:
             res.status === 401 || res.status === 403
-              ? "eToro rejected those keys. Double-check the Public API Key and User Key."
+              ? "eToro rejected those keys. Double-check the Public API Key and Private Key."
               : `eToro /me failed (HTTP ${res.status}). ${text.slice(0, 160)}`,
         },
-        { status: 200 } // 200 to client; surface the error in the body
+        { status: 200 }
       );
     }
     me = (await res.json()) as MeResponse;
@@ -98,24 +127,35 @@ export async function POST(req: Request) {
     );
   }
 
-  // Step 2: /user-info/people?cidList=<realCid> — use realCid (not gcid) per skill notes
-  const cidForLookup = me.realCid ?? me.gcid;
-  let people: PeopleResponse = {};
-  try {
-    const res = await fetch(`${BASE}/user-info/people?cidList=${cidForLookup}`, {
-      headers: { ...baseHeaders, "x-request-id": uuid() },
-    });
-    if (res.ok) {
-      people = (await res.json()) as PeopleResponse;
+  // Step 2: /user-info/people. Per skill: use realCid not gcid.
+  // Try realCid first, then fall back to gcid if realCid lookup is empty.
+  let profile = { username: "", firstName: "", lastName: "", avatarUrl: "" };
+  for (const cid of [me.realCid, me.gcid].filter(Boolean) as number[]) {
+    try {
+      const res = await fetch(`${BASE}/user-info/people?cidList=${cid}`, {
+        headers: { ...baseHeaders, "x-request-id": uuid() },
+      });
+      if (!res.ok) continue;
+      const json = await res.json();
+      const picked = pickUserFromPeople(json);
+      if (picked.username) {
+        profile = {
+          username: picked.username,
+          firstName: picked.firstName ?? "",
+          lastName: picked.lastName ?? "",
+          avatarUrl: picked.avatarUrl ?? "",
+        };
+        break;
+      }
+    } catch {
+      /* try next */
     }
-  } catch {
-    /* non-fatal — we'll fall back to gcid as the displayName */
   }
 
-  const person = people.data?.[0];
-  const username = person?.userName ?? `cid-${cidForLookup}`;
-  const displayName = [person?.firstName, person?.lastName].filter(Boolean).join(" ") || username;
-  const avatarUrl = person?.avatars?.[0]?.url;
+  // Final fallback: don't expose the cid as a "username". Use a friendly label.
+  const username = profile.username || "etoro-user";
+  const displayName =
+    [profile.firstName, profile.lastName].filter(Boolean).join(" ") || username;
 
   return NextResponse.json({
     ok: true,
@@ -125,7 +165,7 @@ export async function POST(req: Request) {
       demoCid: me.demoCid,
       username,
       displayName,
-      avatarUrl,
+      avatarUrl: profile.avatarUrl || undefined,
     },
   });
 }

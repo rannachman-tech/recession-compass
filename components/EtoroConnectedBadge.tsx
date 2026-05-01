@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { loadEtoroSession, type EtoroSession } from "@/lib/etoro-storage";
+import { EtoroConnectModal } from "./EtoroConnectModal";
 
 export function EtoroConnectedBadge() {
   const [session, setSession] = useState<EtoroSession | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const refresh = () => setSession(loadEtoroSession());
@@ -18,44 +19,55 @@ export function EtoroConnectedBadge() {
     };
   }, []);
 
-  if (!session) {
-    return (
-      <Link
-        href="/connect"
-        className="focus-ring inline-flex h-8 items-center rounded-md border border-border-strong bg-fg px-3 text-[12px] font-medium text-bg hover:bg-accent"
-      >
-        Connect eToro
-        <span aria-hidden="true" className="ml-1.5">→</span>
-      </Link>
-    );
-  }
+  // Allow other parts of the app to open the modal via a global event.
+  useEffect(() => {
+    const open = () => setOpen(true);
+    window.addEventListener("rc-open-etoro-modal", open);
+    return () => window.removeEventListener("rc-open-etoro-modal", open);
+  }, []);
 
   return (
-    <Link
-      href="/connect"
-      className="focus-ring inline-flex h-8 items-center gap-2 rounded-md border border-border-strong bg-surface px-2.5 text-[12px] text-fg hover:bg-surface-2"
-      title={`Connected as @${session.profile.username} (${session.env})`}
-    >
-      <span
-        aria-hidden="true"
-        className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"
-      />
-      <span className="font-medium">@{session.profile.username}</span>
-      <span
-        className="font-mono text-[9px] uppercase tracking-wider rounded px-1 py-0.5"
-        style={{
-          background:
-            session.env === "real"
-              ? "rgb(239, 68, 68, 0.15)"
-              : "rgb(96, 165, 250, 0.15)",
-          color:
-            session.env === "real"
-              ? "rgb(239, 68, 68)"
-              : "rgb(96, 165, 250)",
-        }}
-      >
-        {session.env}
-      </span>
-    </Link>
+    <>
+      {session ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="focus-ring inline-flex h-8 items-center gap-2 rounded-md border border-border-strong bg-surface px-2.5 text-[12px] text-fg hover:bg-surface-2"
+          title={`Connected as @${session.profile.username} (${session.env})`}
+        >
+          <span
+            aria-hidden="true"
+            className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"
+          />
+          <span className="font-medium">@{session.profile.username}</span>
+          <span
+            className="font-mono text-[9px] uppercase tracking-wider rounded px-1 py-0.5"
+            style={{
+              background:
+                session.env === "real"
+                  ? "rgb(239, 68, 68, 0.15)"
+                  : "rgb(96, 165, 250, 0.15)",
+              color:
+                session.env === "real"
+                  ? "rgb(239, 68, 68)"
+                  : "rgb(96, 165, 250)",
+            }}
+          >
+            {session.env === "demo" ? "virtual" : "real"}
+          </span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="focus-ring inline-flex h-8 items-center rounded-md border border-border-strong bg-fg px-3 text-[12px] font-medium text-bg hover:bg-accent"
+        >
+          Connect eToro
+          <span aria-hidden="true" className="ml-1.5">→</span>
+        </button>
+      )}
+
+      <EtoroConnectModal open={open} onClose={() => setOpen(false)} />
+    </>
   );
 }
