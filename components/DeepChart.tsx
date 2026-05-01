@@ -13,15 +13,22 @@ import {
   YAxis,
 } from "recharts";
 import type { CompositeHistoryPoint } from "@/lib/types";
+import { PhasesLegend } from "./PhasesLegend";
 
 interface Props {
   history: CompositeHistoryPoint[];
   recessions: Array<{ start: string; end: string; label?: string }>;
   bandsLabel: string;
+  /** Current composite score — used to highlight the active phase in the legend. */
+  currentScore?: number;
 }
 
-export function DeepChart({ history, recessions, bandsLabel }: Props) {
-  // Convert dates to numeric x for clean axis math.
+export function DeepChart({
+  history,
+  recessions,
+  bandsLabel,
+  currentScore,
+}: Props) {
   const data = useMemo(
     () =>
       history.map((p) => ({
@@ -35,18 +42,18 @@ export function DeepChart({ history, recessions, bandsLabel }: Props) {
   const maxT = data.length ? data[data.length - 1].t : 0;
 
   return (
-    <section
-      aria-label="50-year history"
-      className="mt-12 sm:mt-16"
-    >
-      <header className="mb-3">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
-          50-year history
-        </h2>
-        <p className="mt-1 text-[14px] text-fg-muted">
-          Composite score plotted against {bandsLabel.toLowerCase()}. Drag or
-          hover to inspect a date.
-        </p>
+    <section aria-label="50-year history" className="mt-12 sm:mt-16">
+      <header className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
+            50-year history
+          </h2>
+          <p className="mt-1 text-[14px] text-fg-muted">
+            Composite score plotted against {bandsLabel.toLowerCase()}. Drag
+            or hover to inspect a date.
+          </p>
+        </div>
+        <PhasesLegend activeScore={currentScore} />
       </header>
 
       <div className="rounded-lg border border-border bg-surface p-3 sm:p-4">
@@ -81,7 +88,6 @@ export function DeepChart({ history, recessions, bandsLabel }: Props) {
                 width={28}
               />
 
-              {/* Recession bands */}
               {recessions.map((r) => (
                 <ReferenceArea
                   key={`${r.start}-${r.end}`}
@@ -97,18 +103,17 @@ export function DeepChart({ history, recessions, bandsLabel }: Props) {
                 />
               ))}
 
-              {/* Threshold reference lines */}
               <ReferenceLine
                 y={60}
                 stroke="rgb(var(--warning))"
-                strokeDasharray="3 3"
-                strokeOpacity={0.5}
+                strokeDasharray="2 4"
+                strokeOpacity={0.28}
               />
               <ReferenceLine
                 y={80}
                 stroke="rgb(var(--storm))"
-                strokeDasharray="3 3"
-                strokeOpacity={0.5}
+                strokeDasharray="2 4"
+                strokeOpacity={0.28}
               />
 
               <Tooltip
@@ -142,22 +147,8 @@ export function DeepChart({ history, recessions, bandsLabel }: Props) {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
-          <Legend
-            color="rgb(var(--fg))"
-            kind="line"
-            label="Composite score"
-          />
+          <Legend color="rgb(var(--fg))" kind="line" label="Composite score" />
           <Legend color="rgb(var(--storm))" kind="band" label={bandsLabel} />
-          <Legend
-            color="rgb(var(--warning))"
-            kind="dash"
-            label="Storm watch (60)"
-          />
-          <Legend
-            color="rgb(var(--storm))"
-            kind="dash"
-            label="Storm warning (80)"
-          />
         </div>
       </div>
     </section>
