@@ -1,9 +1,9 @@
 {
   "region": "uk",
   "regionLabel": "United Kingdom",
-  "score": 29,
+  "score": 32,
   "band": 35,
-  "generatedAt": "2026-05-01T17:00:00Z",
+  "generatedAt": "2026-05-01T19:00:00Z",
   "indicators": [
     {
       "id": "yield_curve",
@@ -15,7 +15,7 @@
       "subScore": 0,
       "threshold": 0,
       "weight": 25,
-      "explanation": "The gap between 10-year and 2-year UK gilt yields. Inversion is a long-standing recession signal here too.",
+      "explanation": "UK 10y\u22122y gilt curve.",
       "formula": "score = lerp(value, calm=+1.0pp \u2192 0, alarm=-1.0pp \u2192 100)"
     },
     {
@@ -25,26 +25,11 @@
       "unit": "pp",
       "source": "FRED (ONS-mirrored): LRHUTTTTGBM156S",
       "asOf": "2025-11-01",
-      "subScore": 50,
+      "subScore": 87,
       "threshold": 0.5,
-      "weight": 20,
+      "weight": 25,
       "explanation": "ONS LFS unemployment rate, year-over-year change.",
-      "formula": "value = UR_t \u2212 UR_{t-12}",
-      "stale": true
-    },
-    {
-      "id": "ip",
-      "label": "Industrial production (YoY)",
-      "value": 0.52799019819183,
-      "unit": "%",
-      "source": "FRED (ONS-mirrored): GBRPROINDMISMEI",
-      "asOf": "2024-03-01",
-      "subScore": 50,
-      "threshold": 0,
-      "weight": 15,
-      "explanation": "UK industrial production, year-over-year. Stands in for PMI Manufacturing.",
-      "formula": "value = (IP_t / IP_{t-12} - 1) \u00d7 100",
-      "stale": true
+      "formula": "value = UR_t \u2212 UR_{t-12}"
     },
     {
       "id": "cli",
@@ -55,23 +40,22 @@
       "asOf": "2026-03-01",
       "subScore": 0,
       "threshold": 100,
-      "weight": 15,
-      "explanation": "OECD Composite Leading Indicator (amplitude-adjusted) for the UK. Below 100 is below trend.",
-      "formula": "score = lerp(value, calm=100.5 \u2192 0, alarm=98.5 \u2192 100)"
+      "weight": 20,
+      "explanation": "OECD CLI for the UK.",
+      "formula": "score = lerp(value, calm=101 \u2192 0, alarm=95 \u2192 100)"
     },
     {
       "id": "gdp",
       "label": "Real GDP (YoY)",
-      "value": -8.579996871075634,
+      "value": 0.9974338214889578,
       "unit": "%",
-      "source": "FRED (Eurostat-mirrored): CLVMNACSCAB1GQUK",
-      "asOf": "2020-07-01",
-      "subScore": 50,
+      "source": "FRED (IMF IFS-mirrored): NGDPRSAXDCGBQ",
+      "asOf": "2025-10-01",
+      "subScore": 38,
       "threshold": 0,
-      "weight": 10,
-      "explanation": "UK real GDP, year-over-year.",
-      "formula": "value = (GDP_t / GDP_{t-4q} - 1) \u00d7 100",
-      "stale": true
+      "weight": 12,
+      "explanation": "UK real GDP YoY.",
+      "formula": "value = (GDP_t / GDP_{t-4q} - 1) \u00d7 100"
     },
     {
       "id": "sentiment",
@@ -82,23 +66,22 @@
       "asOf": "2026-03-01",
       "subScore": 43,
       "threshold": -15,
-      "weight": 10,
-      "explanation": "OECD consumer confidence indicator for the UK (balance of opinion, 0-centred). Deeply negative readings cluster around recessions.",
+      "weight": 13,
+      "explanation": "OECD UK consumer confidence (0-centred).",
       "formula": "score = lerp(value, calm=-8 \u2192 0, alarm=-25 \u2192 100)"
     },
     {
       "id": "bank_rate",
-      "label": "BoE Bank Rate (12m change)",
-      "value": -0.2362,
+      "label": "UK overnight rate (12m change)",
+      "value": -0.7294,
       "unit": "pp",
-      "source": "FRED (BoE-mirrored): INTGSTGBM193N",
-      "asOf": "2016-08-01",
-      "subScore": 50,
+      "source": "FRED (BoE-mirrored): IUDSOIA",
+      "asOf": "2026-04-29",
+      "subScore": 0,
       "threshold": 2,
       "weight": 5,
-      "explanation": "Speed of monetary tightening. Sharp rises in Bank Rate over a year have historically been followed by contractions.",
-      "formula": "value = BankRate_t \u2212 BankRate_{t-12}",
-      "stale": true
+      "explanation": "Sterling Overnight Index Average (SONIA).",
+      "formula": "value = SONIA_t \u2212 SONIA_{t-12}"
     }
   ],
   "history": [
@@ -2516,11 +2499,11 @@
     },
     {
       "date": "2026-04-01",
-      "score": 26
+      "score": 27
     },
     {
       "date": "2026-05-01",
-      "score": 29
+      "score": 32
     }
   ],
   "recessions": [
@@ -2551,10 +2534,5 @@
       "label": "COVID"
     }
   ],
-  "notes": [
-    "Unemployment (YoY change): latest observation 2025-11-01 is older than 6 months \u2014 using neutral sub-score 50 in the composite.",
-    "Industrial production (YoY): latest observation 2024-03-01 is older than 6 months \u2014 using neutral sub-score 50 in the composite.",
-    "Real GDP (YoY): latest observation 2020-07-01 is older than 6 months \u2014 using neutral sub-score 50 in the composite.",
-    "BoE Bank Rate (12m change): latest observation 2016-08-01 is older than 6 months \u2014 using neutral sub-score 50 in the composite."
-  ]
+  "notes": []
 }

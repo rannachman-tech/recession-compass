@@ -2,6 +2,17 @@ import type { RegionId } from "./types";
 
 /**
  * Per-region indicator definitions.
+ * v1.3 changes (2026-05-01):
+ *  - Recalibrated anchors that didn't match historical recession behaviour.
+ *  - OECD CLI: calm 100.5 → 101, alarm 98/98.5 → 95 (matching GFC trough 92-94).
+ *  - Sahm rule: alarm 0.8 → 0.5 (matching the textbook trigger).
+ *  - US industrial production: calm 4 → 3, alarm -4 → -10 (GFC trough was -15%).
+ *
+ * v1.2 changes (2026-05-01):
+ *  - Removed EU and UK industrial production indicators (no live FRED mirror).
+ *  - Reweighted: EU UR 20→25, CLI 15→20, GDP 10→12, sentiment 10→13.
+ *  - Reweighted: UK UR 20→25, CLI 15→20, GDP 10→12, sentiment 10→13.
+ *
  * v1.1 changes (2026-05-01):
  *  - Swapped USSLIND (discontinued 2020) for USALOLITOAASTSAM (OECD CLI, current).
  *  - Same swap for EU/UK/CN/JP CLIs: -NOSTSAM (discontinued 2022-2024) → -AASTSAM.
@@ -68,12 +79,12 @@ const US: RegionConfig = {
       transform: "level",
       unit: "pp",
       calm: 0.0,
-      alarm: 0.8,
+      alarm: 0.5,
       weight: 25,
       threshold: 0.5,
       explanation:
         "Triggers when the 3-month average unemployment rate is 0.5pp above its 12-month low. Fires near the start of every US recession since 1970.",
-      formula: "score = lerp(value, calm=0.0pp → 0, alarm=0.8pp → 100)",
+      formula: "score = lerp(value, calm=0.0pp → 0, alarm=0.5pp → 100)",
       source: "FRED: SAHMREALTIME",
     },
     {
@@ -97,8 +108,8 @@ const US: RegionConfig = {
       series: "INDPRO",
       transform: "yoy_pct",
       unit: "%",
-      calm: 4,
-      alarm: -4,
+      calm: 3,
+      alarm: -10,
       weight: 10,
       threshold: 0,
       explanation:
@@ -112,13 +123,13 @@ const US: RegionConfig = {
       series: "USALOLITOAASTSAM",
       transform: "level",
       unit: "",
-      calm: 100.5,
-      alarm: 98.5,
+      calm: 101,
+      alarm: 95,
       weight: 10,
       threshold: 100,
       explanation:
         "OECD Composite Leading Indicator (amplitude-adjusted) for the US. Below 100 is below trend. Replaced the discontinued Philly Fed state-leading index in v1.1.",
-      formula: "score = lerp(value, calm=100.5 → 0, alarm=98.5 → 100)",
+      formula: "score = lerp(value, calm=101 → 0, alarm=95 → 100)",
       source: "FRED (OECD-mirrored): USALOLITOAASTSAM",
     },
     {
@@ -192,32 +203,17 @@ const EU: RegionConfig = {
     },
     {
       id: "unemployment",
-      label: "Unemployment (YoY change)",
-      series: "LRHUTTTTEZM156S",
+      label: "Unemployment (YoY change, DE/FR/IT/ES avg)",
+      series: "LRHUTTTTDEM156S",
       transform: "yoy_pp",
       unit: "pp",
       calm: -0.5,
       alarm: 1.0,
-      weight: 20,
+      weight: 25,
       threshold: 0.5,
-      explanation: "Eurostat harmonised unemployment rate, year-over-year change.",
-      formula: "value = UR_t − UR_{t-12}",
-      source: "FRED (Eurostat-mirrored): LRHUTTTTEZM156S",
-    },
-    {
-      id: "ip",
-      label: "Industrial production (YoY)",
-      series: "EA19PRINTO01GYSAM",
-      transform: "yoy_pct",
-      unit: "%",
-      calm: 3,
-      alarm: -5,
-      weight: 15,
-      threshold: 0,
-      explanation:
-        "Eurozone industrial production, year-over-year. A reliable warning bell in manufacturing-heavy economies.",
-      formula: "value = (IP_t / IP_{t-12} - 1) × 100",
-      source: "FRED (Eurostat-mirrored): EA19PRINTO01GYSAM",
+      explanation: "Eurozone harmonised unemployment is no longer a live FRED series, so we synthesise it as the equal-weight average of the rates for Germany, France, Italy and Spain — together ~75% of euro-area population. Reported as the year-over-year change.",
+      formula: "value = mean(UR_DE, UR_FR, UR_IT, UR_ES)_t − mean(...)_{t-12}",
+      source: "FRED (OECD-mirrored): LRHUTTTTDEM156S + FRM156S + ITM156S + ESM156S",
     },
     {
       id: "cli",
@@ -225,9 +221,9 @@ const EU: RegionConfig = {
       series: "DEULOLITOAASTSAM",
       transform: "level",
       unit: "",
-      calm: 100.5,
-      alarm: 98.5,
-      weight: 15,
+      calm: 101,
+      alarm: 95,
+      weight: 20,
       threshold: 100,
       explanation:
         "Eurozone CLI is no longer published as a single series, so we synthesise it as the equal-weight average of the OECD CLIs for Germany, France and Italy — the three largest eurozone economies.",
@@ -243,7 +239,7 @@ const EU: RegionConfig = {
       unit: "%",
       calm: 2.5,
       alarm: -1.5,
-      weight: 10,
+      weight: 12,
       threshold: 0,
       explanation:
         "Eurozone real GDP, year-over-year — chain-linked volume measure.",
@@ -258,7 +254,7 @@ const EU: RegionConfig = {
       unit: "",
       calm: -8,
       alarm: -25,
-      weight: 10,
+      weight: 13,
       threshold: -15,
       explanation:
         "OECD consumer confidence indicator for the eurozone (balance of opinion, 0-centred). Deeply negative readings cluster around recessions.",
@@ -312,26 +308,11 @@ const UK: RegionConfig = {
       unit: "pp",
       calm: -0.5,
       alarm: 1.0,
-      weight: 20,
+      weight: 25,
       threshold: 0.5,
       explanation: "ONS LFS unemployment rate, year-over-year change.",
       formula: "value = UR_t − UR_{t-12}",
       source: "FRED (ONS-mirrored): LRHUTTTTGBM156S",
-    },
-    {
-      id: "ip",
-      label: "Industrial production (YoY)",
-      series: "GBRPROINDMISMEI",
-      transform: "yoy_pct",
-      unit: "%",
-      calm: 2,
-      alarm: -5,
-      weight: 15,
-      threshold: 0,
-      explanation:
-        "UK industrial production, year-over-year. Stands in for PMI Manufacturing.",
-      formula: "value = (IP_t / IP_{t-12} - 1) × 100",
-      source: "FRED (ONS-mirrored): GBRPROINDMISMEI",
     },
     {
       id: "cli",
@@ -339,28 +320,28 @@ const UK: RegionConfig = {
       series: "GBRLOLITOAASTSAM",
       transform: "level",
       unit: "",
-      calm: 100.5,
-      alarm: 98.5,
-      weight: 15,
+      calm: 101,
+      alarm: 95,
+      weight: 20,
       threshold: 100,
       explanation:
         "OECD Composite Leading Indicator (amplitude-adjusted) for the UK. Below 100 is below trend.",
-      formula: "score = lerp(value, calm=100.5 → 0, alarm=98.5 → 100)",
+      formula: "score = lerp(value, calm=101 → 0, alarm=95 → 100)",
       source: "FRED (OECD-mirrored): GBRLOLITOAASTSAM",
     },
     {
       id: "gdp",
       label: "Real GDP (YoY)",
-      series: "CLVMNACSCAB1GQUK",
+      series: "NGDPRSAXDCGBQ",
       transform: "yoy_pct",
       unit: "%",
       calm: 2.5,
       alarm: -1.5,
-      weight: 10,
+      weight: 12,
       threshold: 0,
-      explanation: "UK real GDP, year-over-year.",
+      explanation: "UK real GDP, year-over-year. Replaced the discontinued Eurostat mirror in v1.2 with the IMF NGDP series, which stays current.",
       formula: "value = (GDP_t / GDP_{t-4q} - 1) × 100",
-      source: "FRED (Eurostat-mirrored): CLVMNACSCAB1GQUK",
+      source: "FRED (IMF IFS-mirrored): NGDPRSAXDCGBQ",
     },
     {
       id: "sentiment",
@@ -370,7 +351,7 @@ const UK: RegionConfig = {
       unit: "",
       calm: -8,
       alarm: -25,
-      weight: 10,
+      weight: 13,
       threshold: -15,
       explanation:
         "OECD consumer confidence indicator for the UK (balance of opinion, 0-centred). Deeply negative readings cluster around recessions.",
@@ -379,8 +360,8 @@ const UK: RegionConfig = {
     },
     {
       id: "bank_rate",
-      label: "BoE Bank Rate (12m change)",
-      series: "INTGSTGBM193N",
+      label: "UK overnight rate (12m change)",
+      series: "IUDSOIA",
       transform: "diff_3m_pp",
       unit: "pp",
       calm: 0,
@@ -388,9 +369,9 @@ const UK: RegionConfig = {
       weight: 5,
       threshold: 2,
       explanation:
-        "Speed of monetary tightening. Sharp rises in Bank Rate over a year have historically been followed by contractions.",
-      formula: "value = BankRate_t − BankRate_{t-12}",
-      source: "FRED (BoE-mirrored): INTGSTGBM193N",
+        "Sterling Overnight Index Average (SONIA), the BoE's main policy proxy in money markets. Sharp rises over a year have historically been followed by contractions. Replaced the long-discontinued INTGSTGBM193N in v1.2.",
+      formula: "value = SONIA_t − SONIA_{t-12}",
+      source: "FRED (BoE-mirrored): IUDSOIA",
     },
   ],
 };
@@ -437,13 +418,13 @@ const GLOBAL: RegionConfig = {
       series: "CHNLOLITOAASTSAM",
       transform: "level",
       unit: "",
-      calm: 100.5,
-      alarm: 98,
+      calm: 101,
+      alarm: 95,
       weight: 20,
       threshold: 100,
       explanation:
         "OECD Composite Leading Indicator (amplitude-adjusted) for China — the cleanest free signal of the world's second-largest economy's growth trajectory.",
-      formula: "score = lerp(value, calm=100.5 → 0, alarm=98 → 100)",
+      formula: "score = lerp(value, calm=101 → 0, alarm=95 → 100)",
       source: "FRED (OECD-mirrored): CHNLOLITOAASTSAM",
     },
     {
@@ -452,13 +433,13 @@ const GLOBAL: RegionConfig = {
       series: "JPNLOLITOAASTSAM",
       transform: "level",
       unit: "",
-      calm: 100.5,
-      alarm: 98,
+      calm: 101,
+      alarm: 95,
       weight: 15,
       threshold: 100,
       explanation:
         "OECD Composite Leading Indicator (amplitude-adjusted) for Japan — included for diversification and as an early warning on East Asian trade.",
-      formula: "score = lerp(value, calm=100.5 → 0, alarm=98 → 100)",
+      formula: "score = lerp(value, calm=101 → 0, alarm=95 → 100)",
       source: "FRED (OECD-mirrored): JPNLOLITOAASTSAM",
     },
   ],

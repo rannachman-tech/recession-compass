@@ -1,9 +1,9 @@
 {
   "region": "us",
   "regionLabel": "United States",
-  "score": 25,
-  "band": 31,
-  "generatedAt": "2026-05-01T17:00:00Z",
+  "score": 27,
+  "band": 32,
+  "generatedAt": "2026-05-01T19:00:00Z",
   "indicators": [
     {
       "id": "yield_curve",
@@ -25,11 +25,11 @@
       "unit": "pp",
       "source": "FRED: SAHMREALTIME",
       "asOf": "2026-03-01",
-      "subScore": 25,
+      "subScore": 40,
       "threshold": 0.5,
       "weight": 25,
-      "explanation": "Triggers when the 3-month average unemployment rate is 0.5pp above its 12-month low. Fires near the start of every US recession since 1970.",
-      "formula": "score = lerp(value, calm=0.0pp \u2192 0, alarm=0.8pp \u2192 100)"
+      "explanation": "Triggers when the 3-month average unemployment rate is 0.5pp above its 12-month low \u2014 that's the textbook fire point.",
+      "formula": "score = lerp(value, calm=0.0pp \u2192 0, alarm=0.5pp \u2192 100)"
     },
     {
       "id": "claims",
@@ -41,7 +41,7 @@
       "subScore": 5,
       "threshold": 10,
       "weight": 10,
-      "explanation": "Weekly initial jobless claims, smoothed to 4-week average and compared to the same week last year. A sustained rise typically precedes a downturn.",
+      "explanation": "Weekly initial jobless claims, smoothed to 4-week average vs same week last year.",
       "formula": "value = (4wMA(claims) / 4wMA(claims, 52w ago) - 1) \u00d7 100"
     },
     {
@@ -51,10 +51,10 @@
       "unit": "%",
       "source": "FRED: INDPRO",
       "asOf": "2026-03-01",
-      "subScore": 41,
+      "subScore": 17,
       "threshold": 0,
       "weight": 10,
-      "explanation": "We use industrial production YoY as a free, non-licensed proxy for the ISM Manufacturing PMI. A negative print typically aligns with a manufacturing recession.",
+      "explanation": "Industrial production YoY as a free, non-licensed proxy for the ISM Manufacturing PMI. GFC trough was -15%.",
       "formula": "value = (INDPRO_t / INDPRO_{t-12} - 1) \u00d7 100"
     },
     {
@@ -64,11 +64,11 @@
       "unit": "",
       "source": "FRED (OECD-mirrored): USALOLITOAASTSAM",
       "asOf": "2026-03-01",
-      "subScore": 0,
+      "subScore": 2,
       "threshold": 100,
       "weight": 10,
-      "explanation": "OECD Composite Leading Indicator (amplitude-adjusted) for the US. Below 100 is below trend. Replaced the discontinued Philly Fed state-leading index in v1.1.",
-      "formula": "score = lerp(value, calm=100.5 \u2192 0, alarm=98.5 \u2192 100)"
+      "explanation": "OECD Composite Leading Indicator (amplitude-adjusted) for the US. Below 100 is below trend; GFC trough was around 92.",
+      "formula": "score = lerp(value, calm=101 \u2192 0, alarm=95 \u2192 100)"
     },
     {
       "id": "unemployment",
@@ -80,7 +80,7 @@
       "subScore": 31,
       "threshold": 0.5,
       "weight": 10,
-      "explanation": "Year-over-year change in the unemployment rate. A sustained rise of more than half a percentage point is rare outside of recessions.",
+      "explanation": "Year-over-year change in the unemployment rate.",
       "formula": "value = UNRATE_t \u2212 UNRATE_{t-12}"
     },
     {
@@ -93,7 +93,7 @@
       "subScore": 8,
       "threshold": 0,
       "weight": 5,
-      "explanation": "Real GDP year-over-year. The most direct (but lagging) measure of economic contraction.",
+      "explanation": "Real GDP year-over-year.",
       "formula": "value = (GDPC1_t / GDPC1_{t-4q} - 1) \u00d7 100"
     },
     {
@@ -106,7 +106,7 @@
       "subScore": 100,
       "threshold": 70,
       "weight": 5,
-      "explanation": "University of Michigan consumer sentiment index. Sub-70 readings have historically clustered around recessions.",
+      "explanation": "University of Michigan consumer sentiment index.",
       "formula": "score = lerp(value, calm=95 \u2192 0, alarm=60 \u2192 100)"
     }
   ],
@@ -2525,11 +2525,11 @@
     },
     {
       "date": "2026-04-01",
-      "score": 25
+      "score": 26
     },
     {
       "date": "2026-05-01",
-      "score": 25
+      "score": 27
     }
   ],
   "recessions": [

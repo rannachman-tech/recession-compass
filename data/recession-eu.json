@@ -1,9 +1,9 @@
 {
   "region": "eu",
   "regionLabel": "Eurozone",
-  "score": 27,
-  "band": 30,
-  "generatedAt": "2026-05-01T17:00:00Z",
+  "score": 15,
+  "band": 19,
+  "generatedAt": "2026-05-01T19:00:00Z",
   "indicators": [
     {
       "id": "yield_curve",
@@ -15,39 +15,24 @@
       "subScore": 10,
       "threshold": 0,
       "weight": 25,
-      "explanation": "The gap between 10-year and 2-year German Bund yields, the eurozone's safe-asset curve.",
+      "explanation": "DE 10y\u22122y yield curve.",
       "formula": "score = lerp(value, calm=+1.0pp \u2192 0, alarm=-1.0pp \u2192 100)"
     },
     {
       "id": "unemployment",
-      "label": "Unemployment (YoY change)",
-      "value": -0.20000000000000018,
+      "label": "Unemployment (YoY change, DE/FR/IT/ES avg)",
+      "value": -0.2999999999999998,
       "unit": "pp",
-      "source": "FRED (Eurostat-mirrored): LRHUTTTTEZM156S",
-      "asOf": "2023-01-01",
-      "subScore": 50,
+      "source": "FRED (OECD-mirrored): LRHUTTTTDEM156S + FRM156S + ITM156S + ESM156S",
+      "asOf": "2026-01-01",
+      "subScore": 13,
       "threshold": 0.5,
-      "weight": 20,
-      "explanation": "Eurostat harmonised unemployment rate, year-over-year change.",
-      "formula": "value = UR_t \u2212 UR_{t-12}",
-      "stale": true
+      "weight": 25,
+      "explanation": "Synthesised eurozone harmonised unemployment.",
+      "formula": "value = mean(UR_DE, UR_FR, UR_IT, UR_ES)_t \u2212 mean(...)_{t-12}"
     },
     {
-      "id": "ip",
-      "label": "Industrial production (YoY)",
-      "value": -245.52621559273447,
-      "unit": "%",
-      "source": "FRED (Eurostat-mirrored): EA19PRINTO01GYSAM",
-      "asOf": "2023-10-01",
-      "subScore": 50,
-      "threshold": 0,
-      "weight": 15,
-      "explanation": "Eurozone industrial production, year-over-year. A reliable warning bell in manufacturing-heavy economies.",
-      "formula": "value = (IP_t / IP_{t-12} - 1) \u00d7 100",
-      "stale": true
-    },
-    {
-      "id": "lei",
+      "id": "cli",
       "label": "OECD leading indicator (DE/FR/IT avg)",
       "value": 101.089426362813,
       "unit": "",
@@ -55,8 +40,8 @@
       "asOf": "2026-03-01",
       "subScore": 0,
       "threshold": 100,
-      "weight": 15,
-      "explanation": "Eurozone CLI is no longer published as a single series, so we synthesise it as the equal-weight average of the OECD CLIs for Germany, France and Italy \u2014 the three largest eurozone economies.",
+      "weight": 20,
+      "explanation": "Synthesised eurozone OECD CLI.",
       "formula": "value = mean(DEULOLITOAASTSAM, FRALOLITOAASTSAM, ITALOLITOAASTSAM)"
     },
     {
@@ -68,8 +53,8 @@
       "asOf": "2026-01-01",
       "subScore": 43,
       "threshold": 0,
-      "weight": 10,
-      "explanation": "Eurozone real GDP, year-over-year \u2014 chain-linked volume measure.",
+      "weight": 12,
+      "explanation": "Eurozone real GDP YoY.",
       "formula": "value = (GDP_t / GDP_{t-4q} - 1) \u00d7 100"
     },
     {
@@ -81,8 +66,8 @@
       "asOf": "2026-01-01",
       "subScore": 26,
       "threshold": -15,
-      "weight": 10,
-      "explanation": "OECD consumer confidence indicator for the eurozone (balance of opinion, 0-centred). Deeply negative readings cluster around recessions.",
+      "weight": 13,
+      "explanation": "OECD eurozone consumer confidence (0-centred).",
       "formula": "score = lerp(value, calm=-8 \u2192 0, alarm=-25 \u2192 100)"
     },
     {
@@ -95,7 +80,7 @@
       "subScore": 9,
       "threshold": 4,
       "weight": 5,
-      "explanation": "Eurozone harmonised CPI, year-over-year. Inflation shocks tighten policy and can pull the economy into recession.",
+      "explanation": "Eurozone harmonised CPI YoY.",
       "formula": "value = (HICP_t / HICP_{t-12} - 1) \u00d7 100"
     }
   ],
@@ -2514,11 +2499,11 @@
     },
     {
       "date": "2026-04-01",
-      "score": 24
+      "score": 18
     },
     {
       "date": "2026-05-01",
-      "score": 27
+      "score": 15
     }
   ],
   "recessions": [
@@ -2550,8 +2535,5 @@
       "label": "COVID"
     }
   ],
-  "notes": [
-    "Unemployment (YoY change): latest observation 2023-01-01 is older than 6 months \u2014 using neutral sub-score 50 in the composite.",
-    "Industrial production (YoY): latest observation 2023-10-01 is older than 6 months \u2014 using neutral sub-score 50 in the composite."
-  ]
+  "notes": []
 }
