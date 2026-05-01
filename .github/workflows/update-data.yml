@@ -32,6 +32,9 @@ jobs:
       - name: Run fetcher (all regions)
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          # Optional. When set, the cron uses Groq for the insights paragraph;
+          # otherwise it falls back to templated prose.
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: npm run fetch
 
       - name: Commit if changed
