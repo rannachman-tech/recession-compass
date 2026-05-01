@@ -2,37 +2,30 @@ import type { RegionId } from "./types";
 
 /**
  * Per-region indicator definitions.
- *
- * Each indicator has:
- *  - a FRED series ID (or "DERIVED" for ones we synthesise from other series),
- *  - a calm/alarm pair used to map the raw value to a 0–100 sub-score
- *    (see lib/composite.ts for the math),
- *  - a transform that turns the FRED series into the raw value we score on
- *    (e.g. "yoy" computes year-over-year change, "pct_change_yoy" likewise,
- *    "mom_smoothed_yoy" smooths weekly data first then applies YoY),
- *  - a default weight,
- *  - a plain-English explanation and Pro-mode formula.
+ * v1.1 changes (2026-05-01):
+ *  - Swapped USSLIND (discontinued 2020) for USALOLITOAASTSAM (OECD CLI, current).
+ *  - Same swap for EU/UK/CN/JP CLIs: -NOSTSAM (discontinued 2022-2024) → -AASTSAM.
+ *  - For Eurozone CLI we now synthesise from DEU+FRA+ITA (EA19/EA20 series gone).
+ *  - Recalibrated EU & UK consumer-confidence anchors — those series are
+ *    0-centred, not 100-centred. Old config was wrong.
  */
 
 export type Transform =
   | "level"
-  | "yoy_pp" // year-over-year change in percentage points (for rates)
-  | "yoy_pct" // year-over-year percent change
-  | "mom_smoothed_yoy_pct" // 4-week MA, then year-over-year percent change
-  | "diff_3m_pp"; // 3-month change in percentage points (Sahm-style)
+  | "yoy_pp"
+  | "yoy_pct"
+  | "mom_smoothed_yoy_pct"
+  | "diff_3m_pp";
 
 export interface IndicatorConfig {
   id: string;
   label: string;
-  series: string; // FRED series id
+  series: string;
   transform: Transform;
   unit: string;
-  /** raw value at which sub-score = 0 (calm) */
   calm: number;
-  /** raw value at which sub-score = 100 (alarming) */
   alarm: number;
   weight: number;
-  /** Threshold that defines "concern" — used for the gauge's threshold marker */
   threshold: number;
   explanation: string;
   formula: string;
@@ -44,7 +37,6 @@ export interface RegionConfig {
   label: string;
   short: string;
   indicators: IndicatorConfig[];
-  /** Recession-band labels appearing on the deep chart */
   bandsLabel: string;
 }
 
@@ -116,18 +108,18 @@ const US: RegionConfig = {
     },
     {
       id: "lei",
-      label: "Leading index (state diffusion)",
-      series: "USSLIND",
+      label: "OECD leading indicator",
+      series: "USALOLITOAASTSAM",
       transform: "level",
       unit: "",
-      calm: 1.5,
-      alarm: -1.5,
+      calm: 100.5,
+      alarm: 98.5,
       weight: 10,
-      threshold: 0,
+      threshold: 100,
       explanation:
-        "The Philly Fed's state-leading-indicator index, which historically turns negative ahead of national recessions.",
-      formula: "score = lerp(value, calm=+1.5 → 0, alarm=-1.5 → 100)",
-      source: "FRED: USSLIND",
+        "OECD Composite Leading Indicator (amplitude-adjusted) for the US. Below 100 is below trend. Replaced the discontinued Philly Fed state-leading index in v1.1.",
+      formula: "score = lerp(value, calm=100.5 → 0, alarm=98.5 → 100)",
+      source: "FRED (OECD-mirrored): USALOLITOAASTSAM",
     },
     {
       id: "unemployment",
@@ -186,7 +178,7 @@ const EU: RegionConfig = {
     {
       id: "yield_curve",
       label: "DE yield curve (10y–2y)",
-      series: "IRLTLT01DEM156N", // long-term DE — paired with short below; see fetcher
+      series: "IRLTLT01DEM156N",
       transform: "level",
       unit: "pp",
       calm: 1.0,
@@ -208,8 +200,7 @@ const EU: RegionConfig = {
       alarm: 1.0,
       weight: 20,
       threshold: 0.5,
-      explanation:
-        "Eurostat harmonised unemployment rate, year-over-year change.",
+      explanation: "Eurostat harmonised unemployment rate, year-over-year change.",
       formula: "value = UR_t − UR_{t-12}",
       source: "FRED (Eurostat-mirrored): LRHUTTTTEZM156S",
     },
@@ -230,8 +221,8 @@ const EU: RegionConfig = {
     },
     {
       id: "cli",
-      label: "OECD leading indicator",
-      series: "EA19LOLITONOSTSAM",
+      label: "OECD leading indicator (DE/FR/IT avg)",
+      series: "DEULOLITOAASTSAM",
       transform: "level",
       unit: "",
       calm: 100.5,
@@ -239,9 +230,10 @@ const EU: RegionConfig = {
       weight: 15,
       threshold: 100,
       explanation:
-        "The OECD's Composite Leading Indicator for the euro area, normalised to 100. Below trend signals a slowdown.",
-      formula: "score = lerp(value, calm=100.5 → 0, alarm=98.5 → 100)",
-      source: "FRED (OECD-mirrored): EA19LOLITONOSTSAM",
+        "Eurozone CLI is no longer published as a single series, so we synthesise it as the equal-weight average of the OECD CLIs for Germany, France and Italy — the three largest eurozone economies.",
+      formula:
+        "value = mean(DEULOLITOAASTSAM, FRALOLITOAASTSAM, ITALOLITOAASTSAM)",
+      source: "FRED (OECD-mirrored): DEULOLITOAASTSAM + FRALOLITOAASTSAM + ITALOLITOAASTSAM",
     },
     {
       id: "gdp",
@@ -264,13 +256,13 @@ const EU: RegionConfig = {
       series: "CSCICP02EZM460S",
       transform: "level",
       unit: "",
-      calm: 100.5,
-      alarm: 98,
+      calm: -8,
+      alarm: -25,
       weight: 10,
-      threshold: 100,
+      threshold: -15,
       explanation:
-        "OECD consumer confidence indicator for the eurozone, with 100 as the long-term mean.",
-      formula: "score = lerp(value, calm=100.5 → 0, alarm=98 → 100)",
+        "OECD consumer confidence indicator for the eurozone (balance of opinion, 0-centred). Deeply negative readings cluster around recessions.",
+      formula: "score = lerp(value, calm=-8 → 0, alarm=-25 → 100)",
       source: "FRED (OECD-mirrored): CSCICP02EZM460S",
     },
     {
@@ -344,7 +336,7 @@ const UK: RegionConfig = {
     {
       id: "cli",
       label: "OECD leading indicator",
-      series: "GBRLOLITONOSTSAM",
+      series: "GBRLOLITOAASTSAM",
       transform: "level",
       unit: "",
       calm: 100.5,
@@ -352,9 +344,9 @@ const UK: RegionConfig = {
       weight: 15,
       threshold: 100,
       explanation:
-        "OECD Composite Leading Indicator for the UK. Below 100 is below trend.",
+        "OECD Composite Leading Indicator (amplitude-adjusted) for the UK. Below 100 is below trend.",
       formula: "score = lerp(value, calm=100.5 → 0, alarm=98.5 → 100)",
-      source: "FRED (OECD-mirrored): GBRLOLITONOSTSAM",
+      source: "FRED (OECD-mirrored): GBRLOLITOAASTSAM",
     },
     {
       id: "gdp",
@@ -376,13 +368,13 @@ const UK: RegionConfig = {
       series: "CSCICP02GBM460S",
       transform: "level",
       unit: "",
-      calm: 100.5,
-      alarm: 98,
+      calm: -8,
+      alarm: -25,
       weight: 10,
-      threshold: 100,
+      threshold: -15,
       explanation:
-        "OECD consumer confidence indicator for the UK, with 100 as the long-term mean.",
-      formula: "score = lerp(value, calm=100.5 → 0, alarm=98 → 100)",
+        "OECD consumer confidence indicator for the UK (balance of opinion, 0-centred). Deeply negative readings cluster around recessions.",
+      formula: "score = lerp(value, calm=-8 → 0, alarm=-25 → 100)",
       source: "FRED (OECD-mirrored): CSCICP02GBM460S",
     },
     {
@@ -442,7 +434,7 @@ const GLOBAL: RegionConfig = {
     {
       id: "cn_cli",
       label: "China OECD leading indicator",
-      series: "CHNLOLITONOSTSAM",
+      series: "CHNLOLITOAASTSAM",
       transform: "level",
       unit: "",
       calm: 100.5,
@@ -450,14 +442,14 @@ const GLOBAL: RegionConfig = {
       weight: 20,
       threshold: 100,
       explanation:
-        "OECD Composite Leading Indicator for China — the cleanest free signal of the world's second-largest economy's growth trajectory.",
+        "OECD Composite Leading Indicator (amplitude-adjusted) for China — the cleanest free signal of the world's second-largest economy's growth trajectory.",
       formula: "score = lerp(value, calm=100.5 → 0, alarm=98 → 100)",
-      source: "FRED (OECD-mirrored): CHNLOLITONOSTSAM",
+      source: "FRED (OECD-mirrored): CHNLOLITOAASTSAM",
     },
     {
       id: "jp_cli",
       label: "Japan OECD leading indicator",
-      series: "JPNLOLITONOSTSAM",
+      series: "JPNLOLITOAASTSAM",
       transform: "level",
       unit: "",
       calm: 100.5,
@@ -465,9 +457,9 @@ const GLOBAL: RegionConfig = {
       weight: 15,
       threshold: 100,
       explanation:
-        "OECD Composite Leading Indicator for Japan — included for diversification and as an early warning on East Asian trade.",
+        "OECD Composite Leading Indicator (amplitude-adjusted) for Japan — included for diversification and as an early warning on East Asian trade.",
       formula: "score = lerp(value, calm=100.5 → 0, alarm=98 → 100)",
-      source: "FRED (OECD-mirrored): JPNLOLITONOSTSAM",
+      source: "FRED (OECD-mirrored): JPNLOLITOAASTSAM",
     },
   ],
 };

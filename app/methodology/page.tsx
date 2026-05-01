@@ -12,6 +12,11 @@ const CHANGELOG: Array<{ date: string; change: string }> = [
   {
     date: "2026-05-01",
     change:
+      "v1.1 — Replaced stale OECD CLI distributions across US/EU/UK/CN/JP with the still-maintained amplitude-adjusted variants. Eurozone CLI is now synthesised as the equal-weight average of DE/FR/IT (the EA19 series was discontinued). Recalibrated EU and UK consumer-confidence anchors to their actual 0-centred scale. Added a staleness guard: any indicator whose latest observation is more than 6 months old is forced to a neutral sub-score of 50 and shows a 'stale' badge in the gauge.",
+  },
+  {
+    date: "2026-05-01",
+    change:
       "Initial public release. US (FRED), Europe (FRED-mirrored ECB/Eurostat/OECD), UK (FRED-mirrored ONS/BoE/OECD), Global composite (US 35 / EU 30 / CN 20 / JP 15).",
   },
 ];

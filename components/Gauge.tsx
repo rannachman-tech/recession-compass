@@ -10,22 +10,11 @@ interface Props {
   pro: boolean;
 }
 
-/**
- * One small SVG gauge for a single indicator.
- *
- * Layout: 132×96 viewBox semicircular gauge. Tick marker on the threshold.
- * The needle position is the indicator's 0–100 sub-score (NOT the raw value),
- * so all gauges read on the same scale.
- *
- * Hover/focus reveals a one-sentence plain-English explanation. In Pro mode,
- * the raw value and formula become visible by default.
- */
 export function Gauge({ indicator, pro }: Props) {
   const id = useId();
   const subZone = interpret(indicator.subScore).zone;
   const color = ZONE_HEX[subZone];
 
-  // Animate sub-score in.
   const [shown, setShown] = useState(0);
   useEffect(() => {
     const h = requestAnimationFrame(() => setShown(indicator.subScore));
@@ -33,7 +22,7 @@ export function Gauge({ indicator, pro }: Props) {
   }, [indicator.subScore]);
 
   const angle = subScoreToAngle(shown);
-  const tickAngle = thresholdAngle(indicator);
+  const tickAngle = thresholdAngle();
 
   return (
     <article
@@ -42,12 +31,22 @@ export function Gauge({ indicator, pro }: Props) {
     >
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-[12px] font-medium text-fg">{indicator.label}</h3>
-        <span
-          className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle"
-          title={`Weight ${indicator.weight}/100`}
-        >
-          {indicator.weight}%
-        </span>
+        <div className="flex items-center gap-1.5">
+          {indicator.stale && (
+            <span
+              className="font-mono text-[9px] uppercase tracking-wider text-warning border border-warning/40 rounded px-1 py-0.5"
+              title={`Latest observation ${indicator.asOf} is older than 6 months. Sub-score is forced to neutral 50 in the composite.`}
+            >
+              Stale
+            </span>
+          )}
+          <span
+            className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle"
+            title={`Weight ${indicator.weight}/100`}
+          >
+            {indicator.weight}%
+          </span>
+        </div>
       </div>
 
       <div className="mt-2 flex items-end justify-between gap-2">
@@ -61,14 +60,12 @@ export function Gauge({ indicator, pro }: Props) {
             </linearGradient>
           </defs>
 
-          {/* Track */}
           <path
             d={describeArc(66, 66, 50, -90, 90)}
             fill="none"
             stroke="rgb(var(--surface-2))"
             strokeWidth="6"
           />
-          {/* Filled gradient track */}
           <path
             d={describeArc(66, 66, 50, -90, 90)}
             fill="none"
@@ -77,7 +74,6 @@ export function Gauge({ indicator, pro }: Props) {
             opacity="0.55"
           />
 
-          {/* Threshold tick */}
           {(() => {
             const inner = polar(66, 66, 44, tickAngle);
             const outer = polar(66, 66, 56, tickAngle);
@@ -94,7 +90,6 @@ export function Gauge({ indicator, pro }: Props) {
             );
           })()}
 
-          {/* Needle */}
           <g
             className="needle-motion"
             style={{
@@ -114,7 +109,6 @@ export function Gauge({ indicator, pro }: Props) {
             <circle cx="66" cy="20" r="2" fill={color} />
           </g>
 
-          {/* Hub */}
           <circle
             cx="66"
             cy="66"
@@ -142,7 +136,6 @@ export function Gauge({ indicator, pro }: Props) {
         </div>
       </div>
 
-      {/* Explanation — visible on hover/focus, or always in Pro */}
       <p
         className={`mt-2 text-[12px] leading-snug text-fg-muted ${
           pro
@@ -179,10 +172,7 @@ function subScoreToAngle(s: number): number {
   return -90 + (Math.max(0, Math.min(100, s)) / 100) * 180;
 }
 
-function thresholdAngle(ind: IndicatorReading): number {
-  // Use the indicator's threshold mapped to its sub-score domain.
-  // We approximate by treating sub-score 50 as the threshold marker — it's
-  // visually consistent across gauges and matches the mid-point semantics.
+function thresholdAngle(): number {
   return subScoreToAngle(50);
 }
 
