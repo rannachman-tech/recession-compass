@@ -72,7 +72,7 @@ function pickUserFromPeople(json: unknown): {
 }
 
 export async function POST(req: Request) {
-  let body: { apiKey?: string; userKey?: string; usernameOverride?: string };
+  let body: { apiKey?: string; userKey?: string };
   try {
     body = await req.json();
   } catch {
@@ -81,7 +81,6 @@ export async function POST(req: Request) {
 
   const apiKey = (body.apiKey ?? "").trim();
   const userKey = (body.userKey ?? "").trim();
-  const overrideUsername = (body.usernameOverride ?? "").trim().replace(/^@/, "");
   if (!apiKey || !userKey) {
     return NextResponse.json(
       { ok: false, error: "Both Public API Key and Private Key are required." },
@@ -162,8 +161,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // Final username: explicit user-provided override > resolved profile > friendly fallback.
-  const username = overrideUsername || profile.username || "etoro-user";
+  const username = profile.username || "etoro-user";
   const displayName =
     [profile.firstName, profile.lastName].filter(Boolean).join(" ") || username;
 
