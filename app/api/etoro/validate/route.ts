@@ -72,7 +72,7 @@ function pickUserFromPeople(json: unknown): {
 }
 
 export async function POST(req: Request) {
-  let body: { apiKey?: string; userKey?: string };
+  let body: { apiKey?: string; userKey?: string; usernameOverride?: string };
   try {
     body = await req.json();
   } catch {
@@ -81,6 +81,7 @@ export async function POST(req: Request) {
 
   const apiKey = (body.apiKey ?? "").trim();
   const userKey = (body.userKey ?? "").trim();
+  const overrideUsername = (body.usernameOverride ?? "").trim().replace(/^@/, "");
   if (!apiKey || !userKey) {
     return NextResponse.json(
       { ok: false, error: "Both Public API Key and Private Key are required." },
@@ -127,9 +128,18 @@ export async function POST(req: Request) {
     );
   }
 
+  // Some account types expose username on /me directly. Peek for it.
+  const meDirectUsername = pick(me as Record<string, unknown>, [
+    "userName",
+    "username",
+    "user_name",
+    "name",
+    "displayName",
+  ]);
+
   // Step 2: /user-info/people. Per skill: use realCid not gcid.
   // Try realCid first, then fall back to gcid if realCid lookup is empty.
-  let profile = { username: "", firstName: "", lastName: "", avatarUrl: "" };
+  let profile = { username: meDirectUsername ?? "", firstName: "", lastName: "", avatarUrl: "" };
   for (const cid of [me.realCid, me.gcid].filter(Boolean) as number[]) {
     try {
       const res = await fetch(`${BASE}/user-info/people?cidList=${cid}`, {
@@ -152,8 +162,8 @@ export async function POST(req: Request) {
     }
   }
 
-  // Final fallback: don't expose the cid as a "username". Use a friendly label.
-  const username = profile.username || "etoro-user";
+  // Final username: explicit user-provided override > resolved profile > friendly fallback.
+  const username = overrideUsername || profile.username || "etoro-user";
   const displayName =
     [profile.firstName, profile.lastName].filter(Boolean).join(" ") || username;
 
