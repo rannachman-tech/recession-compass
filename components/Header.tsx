@@ -10,7 +10,6 @@ import type { ThemeMode } from "@/lib/types";
 export function Header() {
   const [theme, setTheme] = useState<ThemeMode>("dark");
 
-  // Hydrate from localStorage on mount.
   useEffect(() => {
     const prefs = loadPrefs();
     setTheme(prefs.theme);
@@ -33,21 +32,13 @@ export function Header() {
             className="focus-ring inline-flex items-baseline gap-2"
             aria-label="Recession Compass — home"
           >
-            <span aria-hidden="true" className="text-[15px]">
-              ◐
-            </span>
+            <span aria-hidden="true" className="text-[15px]">◐</span>
             <span className="text-[15px] font-semibold tracking-tight text-fg">
               Recession Compass
             </span>
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/methodology"
-              className="focus-ring hidden h-8 items-center px-2 text-[12px] text-fg-muted hover:text-fg sm:inline-flex"
-            >
-              Methodology
-            </Link>
             <Link
               href="/about"
               className="focus-ring hidden h-8 items-center px-2 text-[12px] text-fg-muted hover:text-fg sm:inline-flex"

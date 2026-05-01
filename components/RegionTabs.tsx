@@ -20,6 +20,7 @@ export function RegionTabs() {
     <nav
       aria-label="Region"
       className="relative w-full overflow-x-auto scrollbar-hide"
+      style={{ overscrollBehaviorInline: "contain" }}
     >
       <ul className="flex min-w-min gap-1 sm:gap-2">
         {REGION_ORDER.map((id) => {
@@ -36,16 +37,13 @@ export function RegionTabs() {
                     : "border-transparent text-fg-muted hover:text-fg hover:border-border"
                 }`}
               >
-                {cfg.label}
+                <span className="md:hidden">{cfg.short}</span>
+                <span className="hidden md:inline">{cfg.label}</span>
               </Link>
             </li>
           );
         })}
       </ul>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-bg to-transparent"
-      />
     </nav>
   );
 }

@@ -18,13 +18,6 @@ export function Footer() {
             <span className="font-semibold text-fg">Recession Compass</span>
             <span className="mx-2 text-fg-subtle">·</span>
             <Link
-              href="/methodology"
-              className="focus-ring underline-offset-2 hover:text-fg hover:underline"
-            >
-              Methodology
-            </Link>
-            <span className="mx-2 text-fg-subtle">·</span>
-            <Link
               href="/about"
               className="focus-ring underline-offset-2 hover:text-fg hover:underline"
             >
