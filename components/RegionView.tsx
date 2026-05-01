@@ -5,6 +5,7 @@ import { RegionTabs } from "./RegionTabs";
 import { LiveSourcesRow } from "./LiveSourcesRow";
 import { ConnectEtoroCta } from "./ConnectEtoroCta";
 import { PositionLadder } from "./PositionLadder";
+import { InsightsCard } from "./InsightsCard";
 import type { RegionData } from "@/lib/types";
 import { regionConfig } from "@/lib/regions";
 
@@ -48,6 +49,8 @@ export function RegionView({ data }: { data: RegionData }) {
         bandsLabel={cfg.bandsLabel}
         currentScore={data.score}
       />
+
+      <InsightsCard insights={data.insights} />
 
       <div className="mt-10">
         <ConnectEtoroCta
