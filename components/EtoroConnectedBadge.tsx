@@ -26,6 +26,12 @@ export function EtoroConnectedBadge() {
     return () => window.removeEventListener("rc-open-etoro-modal", open);
   }, []);
 
+  // Backwards-compat: older sessions stored "cid-XXXX" as the username.
+  // Display them as "etoro-user" so users don't see raw CIDs.
+  const cleanUsername = session && /^cid-/i.test(session.profile.username)
+    ? "etoro-user"
+    : session?.profile.username;
+
   return (
     <>
       {session ? (
@@ -33,13 +39,13 @@ export function EtoroConnectedBadge() {
           type="button"
           onClick={() => setOpen(true)}
           className="focus-ring inline-flex h-8 items-center gap-2 rounded-md border border-border-strong bg-surface px-2.5 text-[12px] text-fg hover:bg-surface-2"
-          title={`Connected as @${session.profile.username} (${session.env})`}
+          title={`Connected as @${cleanUsername} (${session.env})`}
         >
           <span
             aria-hidden="true"
             className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"
           />
-          <span className="font-medium">@{session.profile.username}</span>
+          <span className="font-medium">@{cleanUsername}</span>
           <span
             className="font-mono text-[9px] uppercase tracking-wider rounded px-1 py-0.5"
             style={{
