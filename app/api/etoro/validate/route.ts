@@ -49,12 +49,20 @@ function pickUserFromPeople(json: unknown): {
   lastName?: string;
   avatarUrl?: string;
 } {
-  // Possible top-level shapes: { data: [user] } | [user] | user
+  // Possible top-level shapes (matched in order):
+  //   [user]                  — direct array
+  //   { users:  [user, ...] }  — users key
+  //   { people: [user, ...] }  — people key
+  //   { data:   [user, ...] }  — data envelope
+  //   user                    — single object
   let candidate: unknown = json;
-  if (json && typeof json === "object" && Array.isArray((json as AnyJson).data)) {
-    candidate = ((json as AnyJson).data as unknown[])[0];
-  } else if (Array.isArray(json)) {
+  if (Array.isArray(json)) {
     candidate = json[0];
+  } else if (json && typeof json === "object") {
+    const obj = json as AnyJson;
+    if (Array.isArray(obj.users)) candidate = (obj.users as unknown[])[0];
+    else if (Array.isArray(obj.people)) candidate = (obj.people as unknown[])[0];
+    else if (Array.isArray(obj.data)) candidate = (obj.data as unknown[])[0];
   }
   if (!candidate || typeof candidate !== "object") return {};
   const c = candidate as AnyJson;
