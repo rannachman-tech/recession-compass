@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { phaseFor, ZONE_HEX, type Zone } from "@/lib/interpret";
 import { basketFor, allocate } from "@/lib/baskets";
+import type { RegionId } from "@/lib/types";
 import { loadEtoroSession, type EtoroSession } from "@/lib/etoro-storage";
 
 type Step = "review" | "confirm" | "executing" | "result";
@@ -20,11 +21,12 @@ interface Props {
   onClose: () => void;
   score: number;
   region: string;
+  regionId: RegionId;
 }
 
-export function TradeBasketModal({ open, onClose, score, region }: Props) {
+export function TradeBasketModal({ open, onClose, score, region, regionId }: Props) {
   const phase = phaseFor(score);
-  const basket = basketFor(phase.zone);
+  const basket = basketFor(phase.zone, regionId);
   const color = ZONE_HEX[phase.zone];
 
   const [amount, setAmount] = useState(1000);
@@ -489,26 +491,37 @@ function ResultStep({
             ? `${okCount} of ${results.length} submitted`
             : "Submission failed"}
       </h2>
-      <ul className="mt-4 space-y-1.5 font-mono text-[12px]">
-        {results.map((r, i) => (
-          <li
-            key={i}
-            className="flex items-baseline justify-between gap-3 border-b border-border pb-1"
-          >
-            <span
-              aria-hidden="true"
-              style={{ color: r.ok ? "rgb(96, 165, 250)" : "rgb(239, 68, 68)" }}
-            >
-              {r.ok ? "✓" : "✕"}
-            </span>
-            <span className="text-fg">{r.ticker}</span>
-            <span className="flex-1 text-right text-[11px] text-fg-muted truncate">
-              {r.message ?? (r.ok ? "submitted" : "—")}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-5 flex justify-end">
+      <div className="mt-4 rounded-md border border-border overflow-hidden">
+        <table className="w-full text-[12px]">
+          <thead>
+            <tr className="bg-surface-2/60 text-fg-subtle">
+              <th className="px-3 py-1.5 text-left font-mono text-[10px] uppercase tracking-wider font-medium w-8"></th>
+              <th className="px-3 py-1.5 text-left font-mono text-[10px] uppercase tracking-wider font-medium">Ticker</th>
+              <th className="px-3 py-1.5 text-right font-mono text-[10px] uppercase tracking-wider font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((r, i) => (
+              <tr key={i} className="border-t border-border">
+                <td className="px-3 py-1.5 text-center">
+                  <span
+                    aria-hidden="true"
+                    className="font-mono text-[14px]"
+                    style={{ color: r.ok ? "rgb(34, 197, 94)" : "rgb(239, 68, 68)" }}
+                  >
+                    {r.ok ? "✓" : "✕"}
+                  </span>
+                </td>
+                <td className="px-3 py-1.5 font-mono font-semibold text-fg">{r.ticker}</td>
+                <td className="px-3 py-1.5 text-right font-mono text-[11px] text-fg-muted">
+                  {r.message ?? (r.ok ? "submitted" : "—")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-4 flex justify-end">
         <button
           type="button"
           onClick={onClose}

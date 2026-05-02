@@ -6,13 +6,17 @@ import { TradeBasketModal } from "./TradeBasketModal";
 
 const ETORO_BASE = "https://www.etoro.com/discover/markets";
 
+import type { RegionId } from "@/lib/types";
+
 export function ConnectEtoroCta({
   variant = "header",
   region = "",
+  regionId = "us",
   score,
 }: {
   variant?: "header" | "contextual";
   region?: string;
+  regionId?: RegionId;
   score?: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -76,6 +80,7 @@ export function ConnectEtoroCta({
           onClose={() => setOpen(false)}
           score={score}
           region={region}
+          regionId={regionId}
         />
       )}
     </>

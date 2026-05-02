@@ -45,20 +45,21 @@ export function RegionView({ data }: { data: RegionData }) {
 
       <GaugePanel indicators={data.indicators} />
 
+      <div className="mt-10">
+        <ConnectEtoroCta
+          variant="contextual"
+          region={data.regionLabel}
+          regionId={data.region}
+          score={data.score}
+        />
+      </div>
+
       <DeepChart
         history={data.history}
         recessions={data.recessions}
         bandsLabel={cfg.bandsLabel}
         currentScore={data.score}
       />
-
-      <div className="mt-10">
-        <ConnectEtoroCta
-          variant="contextual"
-          region={data.regionLabel}
-          score={data.score}
-        />
-      </div>
 
       {data.notes.length > 0 && (
         <section className="mt-8">
