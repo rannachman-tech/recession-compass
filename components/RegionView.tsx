@@ -16,9 +16,9 @@ import { regionConfig } from "@/lib/regions";
  *   ┌──────────────────────────────────────────────────────────┐
  *   │ Region tabs                          Live · updated …    │
  *   ├──────────────────────────────────────────────────────────┤
- *   │ [ Barometer + position ladder ]  │  [ Insights card ]    │   55 / 45 hero
- *   ├──────────────────────────────────────────────────────────┤
- *   │ [ Trade-on-eToro CTA banner — full width, horizontal ]   │
+ *   │ [ Barometer + position ladder ]  │  [ Insights card   ]  │
+ *   │                                  │                       │   55 / 45 hero
+ *   │                                  │  [ Trade-on-eToro  ]  │
  *   ├──────────────────────────────────────────────────────────┤
  *   │ [ Indicators grid — full width ]                         │
  *   ├──────────────────────────────────────────────────────────┤
@@ -27,8 +27,10 @@ import { regionConfig } from "@/lib/regions";
  *   │ Notes                                                     │
  *   └──────────────────────────────────────────────────────────┘
  *
- * Below the lg breakpoint the hero collapses to a single column
- * (barometer → insights → trade CTA → indicators → chart).
+ * Trade CTA is pinned to the bottom of the right column with mt-auto so
+ * it absorbs whatever empty space is left below the insights card (the
+ * barometer card sets the row height). Below the lg breakpoint the hero
+ * collapses to a single column.
  */
 export function RegionView({ data }: { data: RegionData }) {
   const cfg = regionConfig(data.region);
@@ -61,17 +63,18 @@ export function RegionView({ data }: { data: RegionData }) {
           )}
         </div>
 
-        <InsightsCard insights={data.insights} className="" />
+        <div className="flex flex-col gap-4">
+          <InsightsCard insights={data.insights} className="" />
+          <div className="mt-auto">
+            <ConnectEtoroCta
+              variant="contextual"
+              region={data.regionLabel}
+              regionId={data.region}
+              score={data.score}
+            />
+          </div>
+        </div>
       </section>
-
-      <div className="mt-4 lg:mt-6">
-        <ConnectEtoroCta
-          variant="contextual"
-          region={data.regionLabel}
-          regionId={data.region}
-          score={data.score}
-        />
-      </div>
 
       <GaugePanel indicators={data.indicators} />
 
