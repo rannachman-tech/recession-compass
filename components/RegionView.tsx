@@ -51,7 +51,7 @@ export function RegionView({ data }: { data: RegionData }) {
           <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
             {data.regionLabel}
           </div>
-          <div className="mt-4 sm:mt-6 w-full max-w-[560px]">
+          <div className="mt-2 sm:mt-3 w-full max-w-[440px]">
             <Barometer
               score={data.score}
               band={data.band}
@@ -64,15 +64,16 @@ export function RegionView({ data }: { data: RegionData }) {
         </div>
 
         <div className="flex flex-col gap-4">
-          <InsightsCard insights={data.insights} className="" />
-          <div className="mt-auto">
-            <ConnectEtoroCta
-              variant="contextual"
-              region={data.regionLabel}
-              regionId={data.region}
-              score={data.score}
-            />
-          </div>
+          <InsightsCard
+            insights={data.insights}
+            className="flex-1"
+          />
+          <ConnectEtoroCta
+            variant="contextual"
+            region={data.regionLabel}
+            regionId={data.region}
+            score={data.score}
+          />
         </div>
       </section>
 

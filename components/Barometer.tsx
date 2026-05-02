@@ -223,21 +223,21 @@ export function Barometer({ score, band, calibrating = false }: Props) {
         </text>
       </svg>
 
-      <figcaption className="mt-2 text-center">
-        <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
+      <figcaption className="mt-1 text-center">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
           Recession probability
         </div>
-        <div className="mt-2 flex items-baseline justify-center gap-2 tabular-nums">
+        <div className="mt-1 flex items-baseline justify-center gap-1.5 tabular-nums">
           <span
-            className="text-[64px] font-semibold leading-none tracking-tight text-fg sm:text-[80px]"
+            className="text-[44px] font-semibold leading-none tracking-tight text-fg sm:text-[52px]"
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
             {calibrating ? "—" : Math.round(targetScore)}
           </span>
-          <span className="text-[18px] font-medium text-fg-subtle">/100</span>
+          <span className="text-[14px] font-medium text-fg-subtle">/100</span>
         </div>
         <p
-          className="mt-3 text-[16px] sm:text-[18px] font-medium"
+          className="mt-1.5 text-[14px] sm:text-[15px] font-medium"
           style={{ color: zoneHex }}
         >
           {calibrating ? "Calibrating instruments…" : label}
