@@ -426,7 +426,14 @@ function ConfirmStep({
         </table>
       </div>
 
-      <div className="mt-5 flex gap-2 justify-end">
+      <p
+        role="note"
+        className="mt-4 rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[12px] leading-relaxed text-fg-muted"
+      >
+        Make sure you have the required funds available in your account.
+      </p>
+
+      <div className="mt-4 flex gap-2 justify-end">
         <button
           type="button"
           onClick={onBack}
