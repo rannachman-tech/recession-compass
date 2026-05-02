@@ -30,6 +30,7 @@ export function EtoroConnectModal({ open, onClose }: Props) {
   const [env, setEnv] = useState<EtoroEnv>("demo");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string>("");
+  const [envWarning, setEnvWarning] = useState<string>("");
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Hydrate when modal opens, reset transient state when it closes.
@@ -40,6 +41,7 @@ export function EtoroConnectModal({ open, onClose }: Props) {
     if (s) setEnv(s.env);
     setStatus("idle");
     setError("");
+    setEnvWarning("");
   }, [open]);
 
   // ESC to close, lock body scroll while open.
@@ -75,18 +77,27 @@ export function EtoroConnectModal({ open, onClose }: Props) {
         setError(json.error || "Unknown error");
         return;
       }
+      const detected = json.detectedEnv as ("real" | "demo" | undefined);
+      const finalEnv: EtoroEnv = detected ?? env;
+      if (detected && detected !== env) {
+        setEnvWarning(
+          detected === "real"
+            ? "These keys are bound to your REAL account — saving as real instead of demo."
+            : "These keys are bound to your DEMO account — saving as demo instead of real."
+        );
+      }
       const newSession: EtoroSession = {
         apiKey,
         userKey,
-        env,
+        env: finalEnv,
         profile: json.profile,
         connectedAt: new Date().toISOString(),
       };
       saveEtoroSession(newSession);
       setSession(newSession);
       setStatus("ok");
-      // Auto-close after a beat so the user can see the success state.
-      setTimeout(onClose, 900);
+      // Auto-close: shorter delay if no warning, longer if there's one to read.
+      setTimeout(onClose, detected && detected !== env ? 2200 : 900);
     } catch (err) {
       setStatus("error");
       setError((err as Error).message);
@@ -155,9 +166,24 @@ export function EtoroConnectModal({ open, onClose }: Props) {
           )}
 
           {status === "ok" && (
-            <p className="mt-3 text-[12px] text-emerald-500" role="status">
-              ✓ Connected. Closing…
-            </p>
+            <>
+              {envWarning && (
+                <p
+                  className="mt-3 rounded-md border px-3 py-2 text-[12px]"
+                  role="status"
+                  style={{
+                    background: "rgb(250, 204, 21, 0.08)",
+                    borderColor: "rgb(250, 204, 21, 0.4)",
+                    color: "rgb(250, 204, 21)",
+                  }}
+                >
+                  {envWarning}
+                </p>
+              )}
+              <p className="mt-3 text-[12px] text-emerald-500" role="status">
+                ✓ Connected. Closing…
+              </p>
+            </>
           )}
         </div>
       </div>

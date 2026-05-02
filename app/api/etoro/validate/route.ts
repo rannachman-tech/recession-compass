@@ -173,8 +173,23 @@ export async function POST(req: Request) {
   const displayName =
     [profile.firstName, profile.lastName].filter(Boolean).join(" ") || username;
 
+  // Detect actual environment by probing /trading/info/portfolio (real path).
+  // 200 → real-bound. 401/403 → demo-bound. Other → leave undefined and
+  // trust the user's selection.
+  let detectedEnv: "real" | "demo" | undefined;
+  try {
+    const probe = await fetch(`${BASE}/trading/info/portfolio`, {
+      headers: { ...baseHeaders, "x-request-id": uuid() },
+    });
+    if (probe.ok) detectedEnv = "real";
+    else if (probe.status === 401 || probe.status === 403) detectedEnv = "demo";
+  } catch {
+    /* network blip — leave undefined */
+  }
+
   return NextResponse.json({
     ok: true,
+    detectedEnv,
     profile: {
       gcid: me.gcid,
       realCid: me.realCid,
