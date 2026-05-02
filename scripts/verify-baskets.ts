@@ -30,21 +30,36 @@ interface VerifyResult {
 }
 
 /**
- * eToro returns symbols with exchange suffix in `internalSymbolFull`
- * (e.g. "VUSA.L" on LSE, "VTI.US" on Nasdaq). To verify a ticker exists,
- * we use the broader `searchText` query and accept any result whose
- * symbol equals the ticker OR starts with `TICKER.`.
+ * eToro's `/market-data/search` requires the EXACT suffixed
+ * internalSymbolFull (e.g. "VTI.US", "VUSA.L", "EXSA.DE") to filter.
+ * `searchText` is silently ignored on this endpoint.
+ *
+ * We try a candidate list of likely suffixes per ticker (US ETFs are
+ * .US; UCITS are usually .L, occasionally .DE/.MI/.SW/.AS), stopping
+ * on the first hit. Yields ~3-8 calls per ticker.
  */
-async function searchTicker(
-  ticker: string,
+
+// US-listed tickers (Nasdaq/NYSE Arca) — only need .US
+const US_LISTED = new Set([
+  "VTI","QQQ","VEA","VWO","SCHD","VYM","BND","TIP","IEF","TLT",
+  "BIL","SHV","GLD","XLU","XLP","XLV",
+]);
+
+const UCITS_SUFFIXES = [".L", ".DE", ".MI", ".SW", ".AS", ".PA"];
+
+function candidateSymbols(ticker: string): string[] {
+  if (US_LISTED.has(ticker.toUpperCase())) return [`${ticker}.US`];
+  return UCITS_SUFFIXES.map((s) => `${ticker}${s}`);
+}
+
+async function searchExactSymbol(
+  symbol: string,
   headers: Record<string, string>
-): Promise<VerifyResult> {
-  const url = `${BASE}/market-data/search?searchText=${encodeURIComponent(ticker)}&pageSize=25&fields=instrumentId,internalSymbolFull,symbolFull,displayname,instrumentTypeId`;
+): Promise<{ instrumentId?: number; matched?: string } | null> {
+  const url = `${BASE}/market-data/search?internalSymbolFull=${encodeURIComponent(symbol)}&fields=instrumentId,internalSymbolFull,displayname`;
   try {
     const res = await fetch(url, { headers });
-    if (!res.ok) {
-      return { ticker, found: false, error: `HTTP ${res.status}` };
-    }
+    if (!res.ok) return null;
     const json = (await res.json()) as unknown;
     let list: unknown[] = [];
     if (Array.isArray(json)) list = json;
@@ -55,49 +70,45 @@ async function searchTicker(
       else if (Array.isArray(o.data)) list = o.data as unknown[];
       else if (Array.isArray(o.results)) list = o.results as unknown[];
     }
-
-    const TICK = ticker.toUpperCase();
+    const SYM = symbol.toUpperCase();
     for (const item of list) {
       if (!item || typeof item !== "object") continue;
       const it = item as Record<string, unknown>;
-      const sym = (
-        it.internalSymbolFull ??
-        it.InternalSymbolFull ??
-        it.symbolFull ??
-        it.SymbolFull
-      ) as string | undefined;
-      if (!sym) continue;
-      const SYM = sym.toUpperCase();
-      // accept exact "VTI" OR suffixed "VTI.US" / "VUSA.L" / "VUKE.L"
-      if (SYM === TICK || SYM.startsWith(TICK + ".")) {
+      const sym = (it.internalSymbolFull ?? it.InternalSymbolFull) as string | undefined;
+      if (sym && sym.toUpperCase() === SYM) {
         const id = (it.instrumentId ?? it.InstrumentID) as number | undefined;
-        return { ticker, found: true, matchedSymbol: sym, instrumentId: id };
+        return { instrumentId: id, matched: sym };
       }
     }
-
-    // fall back: include sample of what we did get back so we can debug
-    const sample = list
-      .slice(0, 3)
-      .map((it) => {
-        const o = (it ?? {}) as Record<string, unknown>;
-        return (o.internalSymbolFull ??
-          o.InternalSymbolFull ??
-          o.symbolFull ??
-          o.SymbolFull ??
-          o.displayname ??
-          "?") as string;
-      })
-      .join(", ");
-    return {
-      ticker,
-      found: false,
-      error: list.length
-        ? `no match in ${list.length} result(s) — saw: ${sample}`
-        : "no results",
-    };
-  } catch (err) {
-    return { ticker, found: false, error: (err as Error).message };
+    return null;
+  } catch {
+    return null;
   }
+}
+
+async function searchTicker(
+  ticker: string,
+  headers: Record<string, string>
+): Promise<VerifyResult> {
+  const tried: string[] = [];
+  for (const candidate of candidateSymbols(ticker)) {
+    tried.push(candidate);
+    const hit = await searchExactSymbol(candidate, headers);
+    if (hit) {
+      return {
+        ticker,
+        found: true,
+        matchedSymbol: hit.matched,
+        instrumentId: hit.instrumentId,
+      };
+    }
+    await sleep(60);
+  }
+  return {
+    ticker,
+    found: false,
+    error: `no match — tried: ${tried.join(", ")}`,
+  };
 }
 
 async function sleep(ms: number) {
@@ -124,9 +135,11 @@ async function main() {
     });
     results.push(r);
     const tag = r.found ? "✓" : "✕";
-    const detail = r.found ? `id=${r.instrumentId}` : (r.error ?? "");
+    const detail = r.found
+      ? `${r.matchedSymbol} (id=${r.instrumentId})`
+      : (r.error ?? "");
     console.log(`  ${tag}  ${t.padEnd(8)}  ${detail}`);
-    await sleep(80);
+    await sleep(40);
   }
 
   const missing = results.filter((r) => !r.found);
