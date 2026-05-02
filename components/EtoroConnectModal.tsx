@@ -30,7 +30,6 @@ export function EtoroConnectModal({ open, onClose }: Props) {
   const [env, setEnv] = useState<EtoroEnv>("demo");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string>("");
-  const [envWarning, setEnvWarning] = useState<string>("");
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Hydrate when modal opens, reset transient state when it closes.
@@ -41,7 +40,6 @@ export function EtoroConnectModal({ open, onClose }: Props) {
     if (s) setEnv(s.env);
     setStatus("idle");
     setError("");
-    setEnvWarning("");
   }, [open]);
 
   // ESC to close, lock body scroll while open.
@@ -77,27 +75,18 @@ export function EtoroConnectModal({ open, onClose }: Props) {
         setError(json.error || "Unknown error");
         return;
       }
-      const detected = json.detectedEnv as ("real" | "demo" | undefined);
-      const finalEnv: EtoroEnv = detected ?? env;
-      if (detected && detected !== env) {
-        setEnvWarning(
-          detected === "real"
-            ? "These keys are bound to your REAL account — saving as real instead of demo."
-            : "These keys are bound to your DEMO account — saving as demo instead of real."
-        );
-      }
+      const detected = (json.detectedEnv as "real" | "demo" | undefined) ?? env;
       const newSession: EtoroSession = {
         apiKey,
         userKey,
-        env: finalEnv,
+        env: detected,
         profile: json.profile,
         connectedAt: new Date().toISOString(),
       };
       saveEtoroSession(newSession);
       setSession(newSession);
       setStatus("ok");
-      // Auto-close: shorter delay if no warning, longer if there's one to read.
-      setTimeout(onClose, detected && detected !== env ? 2200 : 900);
+      setTimeout(onClose, 900);
     } catch (err) {
       setStatus("error");
       setError((err as Error).message);
@@ -155,35 +144,18 @@ export function EtoroConnectModal({ open, onClose }: Props) {
             <ConnectForm
               apiKey={apiKey}
               userKey={userKey}
-              env={env}
               status={status}
               error={error}
               onApiKeyChange={setApiKey}
               onUserKeyChange={setUserKey}
-              onEnvChange={setEnv}
               onSubmit={submit}
             />
           )}
 
           {status === "ok" && (
-            <>
-              {envWarning && (
-                <p
-                  className="mt-3 rounded-md border px-3 py-2 text-[12px]"
-                  role="status"
-                  style={{
-                    background: "rgb(250, 204, 21, 0.08)",
-                    borderColor: "rgb(250, 204, 21, 0.4)",
-                    color: "rgb(250, 204, 21)",
-                  }}
-                >
-                  {envWarning}
-                </p>
-              )}
-              <p className="mt-3 text-[12px] text-emerald-500" role="status">
-                ✓ Connected. Closing…
-              </p>
-            </>
+            <p className="mt-3 text-[12px] text-emerald-500" role="status">
+              ✓ Connected. Closing…
+            </p>
           )}
         </div>
       </div>
@@ -268,29 +240,26 @@ function ConnectedCard({
 function ConnectForm({
   apiKey,
   userKey,
-  env,
   status,
   error,
   onApiKeyChange,
   onUserKeyChange,
-  onEnvChange,
   onSubmit,
 }: {
   apiKey: string;
   userKey: string;
-  env: EtoroEnv;
   status: Status;
   error: string;
   onApiKeyChange: (v: string) => void;
   onUserKeyChange: (v: string) => void;
-  onEnvChange: (v: EtoroEnv) => void;
   onSubmit: (e: React.FormEvent) => void;
 }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <p className="text-[13px] leading-relaxed text-fg-muted">
-        Paste your eToro keys. We&apos;ll validate them, resolve your
-        username, and store them in this browser only.
+        Paste your eToro keys. We&apos;ll validate them, auto-detect whether
+        they&apos;re bound to your real or demo account, and store them in
+        this browser only.
       </p>
 
       <Field label="Public API Key">
@@ -317,21 +286,7 @@ function ConnectForm({
         />
       </Field>
 
-      <fieldset>
-        <legend className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
-          Environment
-        </legend>
-        <div className="mt-2 inline-flex rounded-md border border-border p-[2px]">
-          <EnvButton current={env} value="demo" onClick={() => onEnvChange("demo")}>
-            Demo (virtual)
-          </EnvButton>
-          <EnvButton current={env} value="real" onClick={() => onEnvChange("real")}>
-            Real
-          </EnvButton>
-        </div>
-      </fieldset>
-
-      <details className="text-[12px]">
+<details className="text-[12px]">
         <summary className="cursor-pointer font-mono uppercase tracking-wider text-[10px] text-fg-subtle hover:text-fg">
           Where do I get these?
         </summary>
@@ -375,27 +330,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function EnvButton({
-  current,
-  value,
-  onClick,
-  children,
-}: {
-  current: EtoroEnv;
-  value: EtoroEnv;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  const active = current === value;
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`focus-ring rounded-[5px] px-3 py-1.5 text-[12px] font-medium transition-colors ${
-        active ? "bg-surface-2 text-fg" : "text-fg-muted hover:text-fg"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
+
