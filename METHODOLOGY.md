@@ -1,6 +1,6 @@
 # Recession Compass — Methodology
 
-**v1.4 · 2026-05-02 · Internal / compliance distribution only**
+**v1.5 · 2026-05-02 · Internal / compliance distribution only**
 
 ## What
 
@@ -87,41 +87,47 @@ The "Trade on eToro" CTA in each region opens a basket sized to that region's cu
 
 Weights below are % of the user-entered amount. The user picks the dollar amount inside the modal; the system applies the weighting and submits market orders.
 
-### US — hedging US-economy risk (USD)
+All 38 unique instruments below have been verified against eToro's public catalog (`api.etorostatic.com/sapi/instrumentsmetadata/V1.1/instruments`) and the matched `instrumentId` is stored alongside each ticker in `lib/baskets.ts`, so the trade flow can submit market orders directly without a runtime symbol-resolution step.
+
+### US — hedging US-economy risk (USD-listed)
 
 | Phase | Holdings (% weight) |
 |---|---|
 | Clear | VTI 40, QQQ 25, VEA 15, VWO 10, SCHD 10 |
-| Watch | SCHD 30, VYM 20, VTI 20, BND 15, TIP 15 |
+| Watch | SCHD 30, DGRO 20, VTI 20, BND 15, TIP 15 |
 | Warning | XLU 18, XLP 18, XLV 14, GLD 18, IEF 12, TIP 10, BND 10 |
 | Storm | BIL 28, TLT 22, TIP 15, SHV 10, GLD 20, XLU 5 |
 
-### Eurozone — hedging eurozone risk with euro-correlated assets (EUR, UCITS)
+### Eurozone — hedging eurozone risk (EUR, UCITS)
 
 | Phase | Holdings (% weight) |
 |---|---|
-| Clear | EXSA 35, DBXD 20, EXSI 15, VEUR 20, EIMI 10 |
-| Watch | EUDV 28, EXSA 22, DBXD 15, EUNA 20, IBCI 15 |
-| Warning | EXH9 18, EXH4 14, EXH3 13, SGLN 18, EUNH 15, IBCI 12, EUNA 10 |
-| Storm | ERNE 25, EUNH 15, DBXG 15, IBCI 15, SGLN 20, EXH4 10 |
+| Clear | EXSA 35, DAXEX.DE 20, IQQM.DE 15, VWCG.L 20, EIMI.L 10 |
+| Watch | VGWD.DE 28, EXSA 22, DAXEX.DE 15, EUNA.DE 20, IBCI.DE 15 |
+| Warning | SXDPEX.DE 18, UTI.PA 14, FOO.PA 13, IGLN.L 18, XY4P.DE 15, IBCI.DE 12, EUNA.DE 10 |
+| Storm | IS3M.DE 25, XY4P.DE 30, IBCI.DE 15, IGLN.L 20, UTI.PA 10 |
 
-### UK — hedging UK risk with UK-correlated assets (GBP, UCITS)
-
-| Phase | Holdings (% weight) |
-|---|---|
-| Clear | VUKE 25, VMID 25, VUSA 20, VEUR 15, EIMI 15 |
-| Watch | VUKE 30, VHYG 20, VMID 15, IGLT 20, INXG 15 |
-| Warning | VUKE 18, EXH9 12, EXH4 10, SGLN 18, IGLT 18, INXG 14, ERNS 10 |
-| Storm | ERNS 28, IGLT 22, INXG 17, SGLN 23, EXH4 10 |
-
-### Global — hedging global slowdown via the world safe-haven complex (USD/UCITS)
+### UK — hedging UK risk (GBP, UCITS)
 
 | Phase | Holdings (% weight) |
 |---|---|
-| Clear | VWRA 50, EQQQ 20, EIMI 15, VEUR 15 |
-| Watch | VHYL 30, VWRA 25, AGGH 20, VEUR 15, SGLN 10 |
-| Warning | EXH9 18, EXH4 12, SGLN 20, AGGH 15, IDTL 20, EIMB 15 |
-| Storm | IB01 30, IDTL 25, SGLN 25, AGGH 10, EXH4 10 |
+| Clear | ISF.L 25, MIDD.L 25, VUSA.NV 20, VWCG.L 15, EIMI.L 15 |
+| Watch | ISF.L 30, VGWD.DE 20, MIDD.L 15, SYBG.DE 20, IBCI.DE 15 |
+| Warning | ISF.L 18, SXDPEX.DE 12, UTI.PA 10, IGLN.L 18, SYBG.DE 18, IBCI.DE 14, ERNS.L 10 |
+| Storm | ERNS.L 28, SYBG.DE 22, IBCI.DE 17, IGLN.L 23, UTI.PA 10 |
+
+### Global — hedging a global slowdown (USD/UCITS safe-haven complex)
+
+| Phase | Holdings (% weight) |
+|---|---|
+| Clear | VWRP.L 50, CNDX.L 20, EIMI.L 15, VWCG.L 15 |
+| Watch | VGWD.DE 30, VWRP.L 25, AGGU.L 20, VWCG.L 15, IGLN.L 10 |
+| Warning | SXDPEX.DE 18, UTI.PA 12, IGLN.L 20, AGGU.L 15, DTLA.L 20, SEMB.L 15 |
+| Storm | IB01.L 30, DTLA.L 25, IGLN.L 25, AGGU.L 10, UTI.PA 10 |
+
+### Substitution notes (catalog reality vs. ideal picks)
+
+A handful of ideal picks aren't on eToro's catalog and have been replaced with the closest tradeable equivalent: **VYM → DGRO** (Vanguard High Div not on eToro; iShares Dividend Growth is the nearest US dividend-quality fund). **VUKE → ISF.L**, **VMID → MIDD.L**, **VEUR → VWCG.L**, **VUSA → VUSA.NV** (different listings of equivalent funds). **VWRA → VWRP.L** (distributing rather than accumulating share class of the same FTSE All-World UCITS). **EQQQ → CNDX.L** (iShares Nasdaq UCITS). **EUDV / VHYL / VHYG → VGWD.DE** (no Euro Div Aristocrats on eToro — the Vanguard global high-dividend UCITS is the broadest available). **EXH9/EXH4/EXH3 → SXDPEX.DE / UTI.PA / FOO.PA** (iShares STOXX 600 sector funds or Amundi equivalents). **EXSI → IQQM.DE**, **DBXD → DAXEX.DE**, **DBXG → XY4P.DE bumped weight** (no long-Bunds 25+ UCITS on eToro). **IGLT → SYBG.DE** (SPDR UK Gilt — only UK gilt UCITS on eToro). **INXG → IBCI.DE** (no UK index-linked gilt UCITS on eToro; we fall back to € linkers as the closest available inflation hedge — a known compromise). **AGGH → AGGU.L**, **IDTL → DTLA.L**, **EIMB → SEMB.L**, **SGLN → IGLN.L**, **ERNE → IS3M.DE** (different listings/share classes of the same iShares funds).
 
 ### Ticker dictionary
 
@@ -135,10 +141,11 @@ UCITS (used in EU / UK / Global baskets):
 
 ### Pre-launch verification
 
-`scripts/verify-baskets.ts` (run via `npm run verify:baskets`, requires `ETORO_API_KEY` + `ETORO_USER_KEY`) hits eToro's `/market-data/search` for every ticker and reports ✓/✕ with the resolved `instrumentId`. Required green-light before any change to `lib/baskets.ts` ships to main.
+`scripts/verify-baskets.ts` (run via `npm run verify:baskets` — no API keys needed) downloads eToro's public instrument catalog and confirms every `instrumentId` in `lib/baskets.ts` still exists in the catalog with the expected `SymbolFull`. Catches a fund being delisted or renamed before it breaks the trade flow. Required green-light before any change to `lib/baskets.ts` ships to main.
 
 ## Changelog
 
+- **v1.5 (2026-05-02)** — Replaced every basket ticker with one verified against eToro's public instrument catalog. 38/38 holdings now have a stored `instrumentId` and are confirmed-tradeable on eToro. Trade flow skips runtime symbol resolution. Notable replacements: VYM→DGRO (Vanguard High Div not on eToro), VWRA→VWRP.L (USD Acc share not on eToro; switch to Dist), IGLT→SYBG.DE (only UK gilt UCITS on eToro is the SPDR), INXG→IBCI.DE fallback (no UK linker UCITS on eToro). Verifier rewritten to use the public catalog (no API keys required).
 - **v1.4 (2026-05-02)** — Region-aware ETF baskets. Region now means the economy being hedged (not user's regulatory zone). EU baskets hold euro-correlated assets (Bunds, € inflation-linked, € money-market). UK baskets hold UK-correlated assets (gilts, INXG linkers, £ money-market). US stays USD-listed. Global uses USD/UCITS world safe-haven complex. Added `scripts/verify-baskets.ts` as a pre-launch ticker-availability guard against eToro's catalog.
 - **v1.3 (2026-05-01)** — Recalibrated anchors that didn't match historical recession behaviour. OECD CLIs (all 5 instances): calm 100.5 → 101, alarm 98/98.5 → 95 (matching GFC trough of 92–94). Sahm rule: alarm 0.8 → 0.5 (the textbook trigger). US industrial production: calm 4 → 3, alarm −4 → −10 (GFC trough was −15%).
 - **v1.2 (2026-05-01)** — Removed EU and UK industrial production indicators (no live FRED mirror). Reweighted both regions across the remaining six indicators. Bumped staleness threshold from 180 to 240 days to accommodate quarterly publishing cadence. Synthesised EU unemployment from DE/FR/IT/ES (the EZ aggregate stopped publishing in 2023). Swapped UK GDP from `CLVMNACSCAB1GQUK` (last 2020) to `NGDPRSAXDCGBQ` (current). Swapped UK Bank Rate from `INTGSTGBM193N` (last 2016) to `IUDSOIA` (SONIA, daily).

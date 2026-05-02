@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 
 /**
  * POST /api/etoro/trade-basket
- * Body: { apiKey, userKey, env: "real"|"demo", basket: [{ ticker, amount }] }
+ * Body: { apiKey, userKey, env: "real"|"demo",
+ *         basket: [{ ticker, amount, instrumentId }] }
  *
- * For each holding: look up the eToro instrumentId by ticker, then submit a
- * market BUY order at the given USD amount. Returns per-ticker results.
+ * Each holding carries its eToro instrumentId pre-resolved at build time
+ * from the public catalog (api.etorostatic.com/sapi/instrumentsmetadata),
+ * so we skip the runtime /market-data/search step (which doesn't reliably
+ * filter on this endpoint anyway). We just submit a market BUY order per
+ * holding for the given amount.
  *
  * Per the etoro-apps skill:
  *  - Trading body uses PascalCase (InstrumentID, IsBuy, Leverage, Amount).
@@ -29,6 +33,7 @@ function uuid(): string {
 interface BasketHolding {
   ticker: string;
   amount: number;
+  instrumentId?: number;  // pre-resolved from lib/baskets.ts
 }
 
 interface TradeResult {
@@ -163,17 +168,23 @@ export async function POST(req: Request) {
       continue;
     }
 
-    // Step 1: resolve instrumentId
-    const instrumentId = await searchInstrumentId(ticker, {
-      ...baseHeaders,
-      "x-request-id": uuid(),
-    });
+    // Resolve instrumentId — prefer pre-baked id from lib/baskets.ts, fall
+    // back to a runtime search if for some reason the client didn't send one.
+    let instrumentId: number | null = null;
+    if (typeof h.instrumentId === "number" && h.instrumentId > 0) {
+      instrumentId = h.instrumentId;
+    } else {
+      instrumentId = await searchInstrumentId(ticker, {
+        ...baseHeaders,
+        "x-request-id": uuid(),
+      });
+    }
     if (!instrumentId) {
       results.push({ ticker, ok: false, message: "instrument not found on eToro" });
       continue;
     }
 
-    // Step 2: submit market order
+    // Submit market order
     const order = await placeOrder(instrumentId, amount, env, {
       ...baseHeaders,
       "x-request-id": uuid(),

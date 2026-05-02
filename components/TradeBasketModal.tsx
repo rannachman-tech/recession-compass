@@ -74,7 +74,11 @@ export function TradeBasketModal({ open, onClose, score, region, regionId }: Pro
           apiKey: session.apiKey,
           userKey: session.userKey,
           env: session.env,
-          basket: allocations.map((a) => ({ ticker: a.ticker, amount: a.dollars })),
+          basket: allocations.map((a) => ({
+            ticker: a.ticker,
+            amount: a.dollars,
+            instrumentId: a.instrumentId,
+          })),
         }),
       });
       const json = (await res.json()) as { results?: TradeResult[] };
