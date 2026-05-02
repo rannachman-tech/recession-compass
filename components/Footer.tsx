@@ -24,9 +24,6 @@ export function Footer() {
               About
             </Link>
           </p>
-          <p className="text-[11px] font-mono uppercase tracking-wider text-fg-subtle">
-            Data: FRED · MIT licensed
-          </p>
         </div>
       </div>
     </footer>

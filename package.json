@@ -12,7 +12,8 @@
     "fetch:us": "tsx scripts/run.ts us",
     "fetch:eu": "tsx scripts/run.ts eu",
     "fetch:uk": "tsx scripts/run.ts uk",
-    "fetch:global": "tsx scripts/run.ts global"
+    "fetch:global": "tsx scripts/run.ts global",
+    "verify:baskets": "tsx scripts/verify-baskets.ts"
   },
   "dependencies": {
     "next": "14.2.5",
