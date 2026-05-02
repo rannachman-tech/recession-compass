@@ -385,17 +385,40 @@ function ConfirmStep({
         </div>
       )}
 
-      <ul className="mt-4 space-y-1.5 font-mono text-[12px]">
-        {allocate(basket, amount).map((a) => (
-          <li key={a.ticker} className="flex items-baseline justify-between">
-            <span className="text-fg">{a.ticker}</span>
-            <span className="text-fg-subtle">→</span>
-            <span className="tabular-nums text-fg-muted">
-              ${a.dollars.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-4 rounded-md border border-border overflow-hidden">
+        <table className="w-full text-[12px]">
+          <thead>
+            <tr className="bg-surface-2/60 text-fg-subtle">
+              <th className="px-3 py-1.5 text-left font-mono text-[10px] uppercase tracking-wider font-medium">Ticker</th>
+              <th className="px-3 py-1.5 text-right font-mono text-[10px] uppercase tracking-wider font-medium">Weight</th>
+              <th className="px-3 py-1.5 text-right font-mono text-[10px] uppercase tracking-wider font-medium">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allocate(basket, amount).map((a) => (
+              <tr key={a.ticker} className="border-t border-border">
+                <td className="px-3 py-2">
+                  <span className="font-mono font-semibold text-fg">{a.ticker}</span>
+                  <span className="ml-2 text-[11px] text-fg-muted">{a.name}</span>
+                </td>
+                <td className="px-3 py-2 text-right font-mono tabular-nums text-fg-muted">
+                  {a.weight}%
+                </td>
+                <td className="px-3 py-2 text-right font-mono tabular-nums font-semibold text-fg">
+                  ${a.dollars.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+              </tr>
+            ))}
+            <tr className="border-t border-border-strong bg-surface-2/40">
+              <td className="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">Total</td>
+              <td className="px-3 py-2 text-right font-mono text-fg-subtle">100%</td>
+              <td className="px-3 py-2 text-right font-mono tabular-nums font-bold text-fg">
+                ${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div className="mt-5 flex gap-2 justify-end">
         <button
