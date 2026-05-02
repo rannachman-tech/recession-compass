@@ -14,12 +14,13 @@ const DEFAULTS: Prefs = {
 
 function detectSystemTheme(): ThemeMode {
   if (typeof window === "undefined") return "dark";
-  // Default to dark for the family — only fall back to light if the user
-  // has an explicit light preference set.
-  const prefersLight = window.matchMedia?.(
-    "(prefers-color-scheme: light)"
+  // Honor OS preference. Reads `prefers-color-scheme: dark` and matches the
+  // bootstrap script in app/layout.tsx so first paint and post-hydration agree.
+  // If matchMedia is unavailable (very old browser), default to dark.
+  const prefersDark = window.matchMedia?.(
+    "(prefers-color-scheme: dark)"
   ).matches;
-  return prefersLight ? "light" : "dark";
+  return prefersDark ? "dark" : "light";
 }
 
 export function loadPrefs(): Prefs {

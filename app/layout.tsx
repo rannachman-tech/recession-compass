@@ -23,7 +23,11 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// Inline bootstrap script — applies the dark class before paint to prevent FOUC.
+// Inline bootstrap script — applies the right theme class before first paint to
+// prevent FOUC. Order of precedence:
+//   1. user's saved choice in localStorage (overrides everything)
+//   2. OS-level prefers-color-scheme
+//   3. fallback to dark if matchMedia is unavailable or throws
 // Storage key MUST match lib/storage.ts.
 const themeScript = `
 (function() {
@@ -32,7 +36,7 @@ const themeScript = `
     var mode = raw ? (JSON.parse(raw).theme) : null;
     if (!mode || mode === 'system') {
       mode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ? 'dark' : 'dark'; /* default to dark for the family */
+        ? 'dark' : 'light';
     }
     if (mode === 'dark') document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
