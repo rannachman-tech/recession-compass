@@ -17,22 +17,40 @@ const KIND_LABEL: Record<RegionInsights["points"][number]["kind"], string> = {
 };
 
 /**
- * Quiet editorial card surfaced between the deep history chart and the eToro
- * CTA. Shows the auto-drafted paragraph (Groq when available, templated
- * fallback otherwise) plus 1-3 fact chips for transparency about what the
- * narrative was built from.
+ * Quiet editorial card. Lives in the right column of the hero grid.
  *
- * Renders nothing if no insights present (older deploys, or pickFacts found
- * nothing worth flagging).
+ * Always renders something — the column needs to balance the barometer
+ * card next to it. If we have no auto-drafted paragraph (calibrating
+ * region, older deploys), shows a brief placeholder explaining why.
  */
-export function InsightsCard({ insights }: { insights?: RegionInsights }) {
-  if (!insights) return null;
+export function InsightsCard({
+  insights,
+  className,
+}: {
+  insights?: RegionInsights;
+  className?: string;
+}) {
+  const baseClass = "rounded-lg border border-border bg-surface p-4 sm:p-5";
+  const wrapper = className !== undefined ? `${baseClass} ${className}` : `${baseClass} mt-10`;
+
+  if (!insights) {
+    return (
+      <section aria-label="Worth flagging" className={wrapper}>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
+            Worth flagging
+          </h2>
+        </div>
+        <p className="text-[14.5px] leading-relaxed text-fg-muted">
+          Insights resume once this region has fresh indicator data to compare against. The
+          barometer and trade suggestion next to it stay live in the meantime.
+        </p>
+      </section>
+    );
+  }
 
   return (
-    <section
-      aria-label="Worth flagging"
-      className="mt-10 rounded-lg border border-border bg-surface p-4 sm:p-5"
-    >
+    <section aria-label="Worth flagging" className={wrapper}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
           Worth flagging

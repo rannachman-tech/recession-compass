@@ -9,6 +9,27 @@ import { InsightsCard } from "./InsightsCard";
 import type { RegionData } from "@/lib/types";
 import { regionConfig } from "@/lib/regions";
 
+/**
+ * Folded layout — keeps every component and the existing visual scheme,
+ * just rearranges them into a more compact, less-scrollable dashboard:
+ *
+ *   ┌──────────────────────────────────────────────────────────┐
+ *   │ Region tabs                          Live · updated …    │
+ *   ├──────────────────────────────────────────────────────────┤
+ *   │ [ Barometer + position ladder ]  │  [ Insights card ]    │   55 / 45 hero
+ *   ├──────────────────────────────────────────────────────────┤
+ *   │ [ Trade-on-eToro CTA banner — full width, horizontal ]   │
+ *   ├──────────────────────────────────────────────────────────┤
+ *   │ [ Indicators grid — full width ]                         │
+ *   ├──────────────────────────────────────────────────────────┤
+ *   │ [ Deep history chart — full width ]                      │
+ *   ├──────────────────────────────────────────────────────────┤
+ *   │ Notes                                                     │
+ *   └──────────────────────────────────────────────────────────┘
+ *
+ * Below the lg breakpoint the hero collapses to a single column
+ * (barometer → insights → trade CTA → indicators → chart).
+ */
 export function RegionView({ data }: { data: RegionData }) {
   const cfg = regionConfig(data.region);
   const calibrating = data.indicators.length === 0;
@@ -22,13 +43,13 @@ export function RegionView({ data }: { data: RegionData }) {
 
       <section
         aria-label={`${data.regionLabel} recession probability`}
-        className="mt-6 sm:mt-10"
+        className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-4 lg:gap-6 items-stretch"
       >
-        <div className="flex flex-col items-center">
+        <div className="rounded-lg border border-border bg-surface p-4 sm:p-5 flex flex-col items-center">
           <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-fg-subtle">
             {data.regionLabel}
           </div>
-          <div className="mt-6 sm:mt-8 w-full max-w-[640px]">
+          <div className="mt-4 sm:mt-6 w-full max-w-[560px]">
             <Barometer
               score={data.score}
               band={data.band}
@@ -39,13 +60,11 @@ export function RegionView({ data }: { data: RegionData }) {
             <PositionLadder score={data.score} band={data.band} />
           )}
         </div>
+
+        <InsightsCard insights={data.insights} className="" />
       </section>
 
-      <InsightsCard insights={data.insights} />
-
-      <GaugePanel indicators={data.indicators} />
-
-      <div className="mt-10">
+      <div className="mt-4 lg:mt-6">
         <ConnectEtoroCta
           variant="contextual"
           region={data.regionLabel}
@@ -53,6 +72,8 @@ export function RegionView({ data }: { data: RegionData }) {
           score={data.score}
         />
       </div>
+
+      <GaugePanel indicators={data.indicators} />
 
       <DeepChart
         history={data.history}
