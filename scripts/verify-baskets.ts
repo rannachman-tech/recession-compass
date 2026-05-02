@@ -29,11 +29,17 @@ interface VerifyResult {
   error?: string;
 }
 
+/**
+ * eToro returns symbols with exchange suffix in `internalSymbolFull`
+ * (e.g. "VUSA.L" on LSE, "VTI.US" on Nasdaq). To verify a ticker exists,
+ * we use the broader `searchText` query and accept any result whose
+ * symbol equals the ticker OR starts with `TICKER.`.
+ */
 async function searchTicker(
   ticker: string,
   headers: Record<string, string>
 ): Promise<VerifyResult> {
-  const url = `${BASE}/market-data/search?internalSymbolFull=${encodeURIComponent(ticker)}&fields=instrumentId,internalSymbolFull,displayname`;
+  const url = `${BASE}/market-data/search?searchText=${encodeURIComponent(ticker)}&pageSize=25&fields=instrumentId,internalSymbolFull,symbolFull,displayname,instrumentTypeId`;
   try {
     const res = await fetch(url, { headers });
     if (!res.ok) {
@@ -47,17 +53,48 @@ async function searchTicker(
       if (Array.isArray(o.instruments)) list = o.instruments as unknown[];
       else if (Array.isArray(o.items)) list = o.items as unknown[];
       else if (Array.isArray(o.data)) list = o.data as unknown[];
+      else if (Array.isArray(o.results)) list = o.results as unknown[];
     }
+
+    const TICK = ticker.toUpperCase();
     for (const item of list) {
       if (!item || typeof item !== "object") continue;
       const it = item as Record<string, unknown>;
-      const sym = (it.internalSymbolFull ?? it.InternalSymbolFull) as string | undefined;
-      if (sym && sym.toUpperCase() === ticker.toUpperCase()) {
+      const sym = (
+        it.internalSymbolFull ??
+        it.InternalSymbolFull ??
+        it.symbolFull ??
+        it.SymbolFull
+      ) as string | undefined;
+      if (!sym) continue;
+      const SYM = sym.toUpperCase();
+      // accept exact "VTI" OR suffixed "VTI.US" / "VUSA.L" / "VUKE.L"
+      if (SYM === TICK || SYM.startsWith(TICK + ".")) {
         const id = (it.instrumentId ?? it.InstrumentID) as number | undefined;
         return { ticker, found: true, matchedSymbol: sym, instrumentId: id };
       }
     }
-    return { ticker, found: false, error: list.length ? `no exact match in ${list.length} result(s)` : "no results" };
+
+    // fall back: include sample of what we did get back so we can debug
+    const sample = list
+      .slice(0, 3)
+      .map((it) => {
+        const o = (it ?? {}) as Record<string, unknown>;
+        return (o.internalSymbolFull ??
+          o.InternalSymbolFull ??
+          o.symbolFull ??
+          o.SymbolFull ??
+          o.displayname ??
+          "?") as string;
+      })
+      .join(", ");
+    return {
+      ticker,
+      found: false,
+      error: list.length
+        ? `no match in ${list.length} result(s) — saw: ${sample}`
+        : "no results",
+    };
   } catch (err) {
     return { ticker, found: false, error: (err as Error).message };
   }
