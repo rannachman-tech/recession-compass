@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description:
     "A free, transparent recession-probability barometer for the US, Europe, UK and the global economy. Built on public FRED data.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://recession-compass.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://recession-compass.etoro.com"
   ),
   openGraph: {
     title: "Recession Compass",

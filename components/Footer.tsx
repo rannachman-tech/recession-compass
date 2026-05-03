@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function Footer() {
   return (
     <footer className="mt-16 border-t border-border bg-surface-2/40">
@@ -16,13 +14,6 @@ export function Footer() {
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <p className="text-[12px] text-fg-muted">
             <span className="font-semibold text-fg">Recession Compass</span>
-            <span className="mx-2 text-fg-subtle">·</span>
-            <Link
-              href="/about"
-              className="focus-ring underline-offset-2 hover:text-fg hover:underline"
-            >
-              About
-            </Link>
           </p>
         </div>
       </div>

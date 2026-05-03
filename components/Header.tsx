@@ -39,12 +39,6 @@ export function Header() {
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/about"
-              className="focus-ring hidden h-8 items-center px-2 text-[12px] text-fg-muted hover:text-fg sm:inline-flex"
-            >
-              About
-            </Link>
             <EtoroConnectedBadge />
             <ThemeToggle value={theme} onChange={onToggle} />
           </div>
